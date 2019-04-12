@@ -11,12 +11,19 @@
 /*Function Headers
 const char encryptRotation(char *input[]);
 */
-char encryptRotation();
+char * rotationEncryption(int cipher);
+char * substitutionEncryption();
+char * substitutionDecryption();
+char * rotationDecryption();
+char * statRotDecryption(int option);
 
 int main()
 {
 	//User assigns value based on choice below.
 	int choice = 0;
+	char toDecrypt[50];
+	int cipher;
+	int end = 1;
 	
 	/*Basic User Interface
 	Available functions are displayed from the user.
@@ -28,10 +35,11 @@ int main()
 	printf("	(1) Encrypt message using Rotation Cipher\n");
 	printf("	(2) Decrypt message using Rotation Cipher\n");
 	printf("	(3) Enccypt message using Substitution Cipher\n");
-	printf("	(4) Decrypt message using Substitution Cipher\n\n");
+	printf("	(4) Decrypt message using Substitution Cipher\n");
+	printf("	(5) Decrypt message using unknown rotation cipher\n");
 	
 	
-	while (choice < 1 || choice > 4)
+	while (choice < 1 || choice > 5)
 	{
 		printf("Please select the corresponding number for the function you wish to use: ");
 		scanf("%d", &choice);
@@ -41,20 +49,39 @@ int main()
 	{
 	case 1:
 		//This should call the function that will be used to encrypt rotation cipher
-		printf("Encrypt Rotation Cipher");
-		encryptRotation();
+		printf("You selected 'Encrypt Rotation Cipher' Please enter the key: ");
+		scanf("%d", &cipher);
+		rotationEncryption(cipher);
 		break;
 	case 2:
 		//This should call the function that will be used to decrypt rotation cipher
-		printf("Decrypt Rotation Cipher");
+		printf("You selected 'Decrypt Rotation Cipher' Please enter the key that was used: ");
+		scanf("%d", &cipher);
+		cipher = cipher * -1;
+		rotationEncryption(cipher);
 		break;
 	case 3:
 		//This should call the function that will be used to encrypt substitution cipher
 		printf("Encrypt Substitution Cipher");
+		substitutionEncryption();
 		break;
 	case 4:
 		//This should call the function that will be used to decrypt substitution cipher
 		printf("Decrypt Substitution Cipher");
+		substitutionDecryption();
+		break;
+	case 5:
+		printf("Depcrypt Rotation Cipher using statistical analysis\n");
+		int n = 0;
+		while (end != 0)
+		{
+			statRotDecryption(n);
+			printf("Has the output in the textfile been decrypted?\n");
+			printf("	(0) Yes\n");
+			printf("	(1) No\n");
+			scanf("%d", &end);
+			n++;
+		}
 		break;
 	default:
 		//This will happen if user doesn't select an option from 1 to 4 or something else goes wrong
@@ -71,29 +98,424 @@ const char encryptRotation(char *input[])
 }
 */
 	
-char encryptRotation()
+#include<stdio.h> 
+char * rotationEncryption(int cipher)
+  
 {
-	char str1[100];
-	printf("Please enter the string you would like to encrypt");
-	scanf("%s\n", str1);
+    /*char str[50]; 
+	int cipher;
+	printf("Please enter text to be encrypted:");
+    scanf("%s[^\n]", str);
+	printf("Please enter the cipher key:\n");
+	scanf("%d\n", &cipher);
+	*/
+	FILE *input;
+	FILE *output;
 	
-	char str2[100];
-	int f;
-	f=0;
-	while(str1[f] != 0)
+	input = fopen("test.txt", "r");
+	output = fopen("output.txt", "w");
+	
+	while(feof(input) == 0)
 	{
-		str2[f]=str1[f]+1;
-		printf("%c\n", str1[f]);
-		printf("%d\n", f);
-		printf("%s\n", str2);
-		f++;
+		char str;
+		
+		fscanf(input, "%c", &str);
+
+		if (str == 32 || str == '?' || str == '.')
+		{	
+			;
+		}
+		else
+		{
+			str = str + cipher;
+			if (str >= 123 || str < 0)
+			{
+				if (str >= 123)
+				{
+					str = str-26;
+				}
+				else if (str < 0)
+				{
+					str = -1 * str -18;
+				}
+			}
+			else if (str <= 96)
+			{
+				str = str + 26;
+			}
+		}
+		fprintf(output, "%c", str);
+	}
+}
+
+char * substitutionEncryption()
+{
+	char key[27] = {'q','w','e','r','t','y','u','i','o','p','a','s','d','f','g','h','j','k','l','z','x','c','v','b','n','m','\0'};
+	FILE *input;
+	FILE *output;
+	
+	input = fopen("test.txt", "r");
+	output = fopen("output.txt", "w");
+	
+	while(feof(input) == 0)
+	{
+		char str;
+		
+		fscanf(input, "%c", &str);
+		
+		switch (str)
+		{
+			case 97:
+				str = key[0];
+				break;
+			case 98:
+				str = key[1];
+				break;
+			case 99:
+				str = key[2];
+				break;
+			case 100:
+				str = key[3];
+				break;
+			case 101:
+				str = key[4];
+				break;
+			case 102:
+				str = key[5];
+				break;
+			case 103:
+				str = key[6];
+				break;
+			case 104:
+				str = key[7];
+				break;
+			case 105:
+				str = key[8];
+				break;
+			case 106:
+				str = key[9];
+				break;
+			case 107:
+				str = key[10];
+				break;
+			case 108:
+				str = key[11];
+				break;
+			case 109:
+				str = key[12];
+				break;
+			case 110:
+				str = key[13];
+				break;
+			case 111:
+				str = key[14];
+				break;
+			case 112:
+				str = key[15];
+				break;
+			case 113:
+				str = key[16];
+				break;
+			case 114:
+				str = key[17];
+				break;
+			case 115:
+				str = key[18];
+				break;
+			case 116:
+				str = key[19];
+				break;
+			case 117:
+				str = key[20];
+				break;
+			case 118:
+				str = key[21];
+				break;
+			case 119:
+				str = key[22];
+				break;
+			case 120:
+				str = key[23];
+				break;
+			case 121:
+				str = key[24];
+				break;
+			case 122:
+				str = key[25];
+				break;
+			case 123:
+				str = key[26];
+				break;
+			default:
+				break;
+				str = str;
+		}
+		fprintf(output, "%c", str);
+	}
+}
+
+char * rotationDecyption()
+{    
+    char str[50]; 
+	int cipher = -1;
+    scanf("%[^'\n']s", str);
+	
+	for (int n = 0; str[n] != 0; n++)
+		if (str[n] == 32 || str[n] == 58 || str[n] == 46 || str[n] == 44)
+		{	
+			str[n] = str[n];
+		}
+		else
+		{
+			str[n] = str[n] - cipher;
+			if (str[n] >= 123 || str[n] < 0)
+			{
+				if (str[n] >= 123)
+				{
+					str[n] = str[n]-26;
+				}
+				else if (str[n] < 0)
+				{
+					str[n] = -1 * str[n] -18;
+				}
+			}
+			else if (str[n] <= 96)
+			{
+				str[n] = str[n] + 26;
+			}
+		}
+    printf("%s", str); 
+  
+    return 0; 
+}
+
+char * substitutionDecryption()
+{
+	char cipherKey[100]; //= {'q','w','e','r','t','y','u','i','o','p','a','s','d','f','g','h','j','k','l','z','x','c','v','b','n','m','\0'};
+	FILE *input;
+	FILE *output;
+	FILE *key;
+	int n = 0;
+	
+	input = fopen("test.txt", "r");
+	output = fopen("output.txt", "w");
+	key = fopen("key.txt", "r");
+	
+	while(feof(key) == 0)
+	{
+		fscanf(key, "%c", &cipherKey[n]);
+		n++;
+		
 	}
 	
-	return str1;
+	while(feof(input) == 0)
+	{
+		char str;
+		
+		fscanf(input, "%c", &str);
+
+		for (int k=0; cipherKey[k] != 0; k++)
+		{
+			if (str == 32 || str == '.' || str == '?')
+			{
+				str = str;
+			}
+			else if (str == cipherKey[k])
+			{
+				str = k + 97;
+				break;
+			}
+
+		}
+		fprintf(output, "%c", str);
+	}
 }
-/*Possible Functions
-	- rotationEncrypt
-    - rotationDecrypt
-	- substitutionEncrypt
-	- substitutionDecrypt
-*/
+
+char * statRotDecryption(int option)
+{
+	FILE *input;
+	FILE *output;
+	char str[1000];
+	int n = 0, cipher;
+	
+	input = fopen("test.txt", "r");
+	output = fopen("output.txt", "w");
+	
+	int strCount[27];
+	int a, fish = 10;
+	
+	while(feof(input) == 0)
+	{
+		fscanf(input, "%c", &str[n]);
+		if (str[n] > 64 && str[n] < 91)
+			str[n] = str[n] + 32;
+		n++;
+		
+	}
+	for (int n = 0; n<27; n++)
+		strCount[n] = 0;
+	for (int n = 0; str[n] !=0; n++)
+	{
+		switch (str[n])
+		{
+			case 97:
+				strCount[0]++;
+				break;
+			case 98:
+				strCount[1]++;
+				break;
+			case 99:
+				strCount[2]++;
+				break;
+			case 100:
+				strCount[3]++;
+				break;
+			case 101:
+				strCount[4]++;
+				break;
+			case 102:
+				strCount[5]++;
+				break;
+			case 103:
+				strCount[6]++;
+				break;
+			case 104:
+				strCount[7]++;
+				break;
+			case 105:
+				strCount[8]++;
+				break;
+			case 106:
+				strCount[9]++;
+				break;
+			case 107:
+				strCount[10]++;
+				break;
+			case 108:
+				strCount[11]++;
+				break;
+			case 109:
+				strCount[12]++;
+				break;
+			case 110:
+				strCount[13]++;
+				break;
+			case 111:
+				strCount[14]++;
+				break;
+			case 112:
+				strCount[15]++;
+				break;
+			case 113:
+				strCount[16]++;
+				break;
+			case 114:
+				strCount[17]++;
+				break;
+			case 115:
+				strCount[18]++;
+				break;
+			case 116:
+				strCount[19]++;
+				break;
+			case 117:
+				strCount[20]++;
+				break;
+			case 118:
+				strCount[21]++;
+				break;
+			case 119:
+				strCount[22]++;
+				break;
+			case 120:
+				strCount[23]++;
+				break;
+			case 121:
+				strCount[24]++;
+				break;
+			case 122:
+				strCount[25]++;
+				break;
+			default:
+				break;
+		}
+	}
+	for (int n = 0; n<27; n++)
+	{
+		static int count = 0;
+		if ((int)strCount[n] > count)
+		{
+			count = strCount[n];
+			a = n; //holds the value in the string that corresponds to the letter in the alpahbet
+			//i.e. a=0, b=1 etc.
+	    }
+	}
+	if (option == 0)
+	{
+		cipher = a + 97 - 101;
+		printf("Cipher 0 Working");
+	}
+	else if (option ==1)
+	{
+		cipher = a + 97 - 116;
+		printf("Cipher 1 Working");
+	}
+	else if (option == 2)
+	{
+		cipher = a;
+		printf("Cipher 2 Working");
+	}
+	else if (option == 3)
+	{
+		cipher = a + 97 - 111;
+		printf("Cipher 3 Working");
+	}
+		
+	if (cipher <= 0 )
+	{
+		cipher = cipher + 26;
+		printf("Cipher adjusted");
+	}	
+	
+	char strCopy[1000];
+	for (int n = 0; str[n] != 0; n++)
+	{
+		strCopy[n] = str[n];
+}		
+	for (;fish !=0;)
+	{
+		printf("Entered initial for loop");
+		for (int n = 0; str[n] != 0; n++)
+		{
+			
+			
+			if (strCopy[n] == 32 || strCopy[n] == 58 || strCopy[n] == 46 || strCopy[n] == 44 || strCopy[n] == 47)
+			{	
+				strCopy[n] = strCopy[n];
+			}
+			else
+			{
+				strCopy[n] = strCopy[n] - cipher;
+				if (strCopy[n] >= 123 || strCopy[n] < 0)
+				{
+					if (strCopy[n] >= 123)
+					{
+						strCopy[n] = str[n]-26;
+					}
+					else if (strCopy[n] < 0)
+					{
+						strCopy[n] = -1 * str[n] -18;
+					}
+				}
+				else if (strCopy[n] <= 96)
+				{
+					strCopy[n] = strCopy[n] + 26;
+				}
+			}
+		}
+		fish = 0;
+		printf("%s", strCopy);
+	}
+	fprintf(output, "%s", strCopy);
+    return str; 
+}
