@@ -33,269 +33,26 @@ char *keyModifier(int option, char str[]);
 char *subAnalysis2();
 int keyLengthCheck(char key[]);
 void keyCaseChange();
+int run();
+void rotEncChoice(char choice);
+void rotDecChoice(char choice);
+void subEncChoice(char choice);
+void subDecChoice(char choice);
+void unRotDecrypt();
+void unSubDecrypt();
+int *stringCount(char str[]);
 
 int main()
 {
-	//User assigns value based on choice below.
-	int choice = 0, score;
-	char toDecrypt[50], finalString[1000], secChoice = 0;
-	int cipher, counter = 0;
 	int end = 1;
-	int m;
-	char *string;
-
-	//subAnalysis();
-	//subWordComparison();
-	//printf("Score: %d\n", subWordComparison());
-	/*Basic User Interface
-	Available functions are displayed from the user.
-	They enter a value corresponding to the function that they wish to use.
-	e.g. entering 2 to decrypt a message using a rotation cipher.
-	This will then assign 2 to the variable choice, which will then be used
-	to call the function using a switch statement.*/
-	//string = stringMaker();
-	//printf("%s", string);
-	//printf("%c", string[0]);
-	//printf("%d", wordChecker());
-	printf("Available functions\n");
-	printf("	(1) Encrypt message using Rotation Cipher\n");
-	printf("	(2) Decrypt message using Rotation Cipher\n");
-	printf("	(3) Enccypt message using Substitution Cipher\n");
-	printf("	(4) Decrypt message using Substitution Cipher\n");
-	printf("	(5) Decrypt message using unknown rotation cipher\n");
-	printf("	(6) Decrypt message using unknown substitution cipher\n");
-	
-	
-	while (choice < 1 || choice > 6)
+	while(end != 0)
 	{
-		printf("Please select the corresponding number for the function you wish to use: ");
-		scanf("%d", &choice);
+		end = run();
 	}
 
-	switch(choice) 
-	{
-	case 1:
-		//This should call the function that will be used to encrypt rotation cipher
-		printf("\nYou selected 'Encrypt Rotation Cipher' You can choose from the following options:\n");
-		printf("	(a) Read plain text from 'input.txt' and cipher key from 'cipher.txt'\n");
-		printf("	(b) Read plain text from 'input.txt' and cipher key from stdin\n");
-		printf("	(c) Read plain text from stdin and cipher key from 'cipher.txt'\n");
-		printf("	(d) Read plain text and cipher key from stdin\n");
-		printf("\nPlease enter a letter corresponding to your preference: ");
-		scanf("%c", &secChoice);
-		while (secChoice < 97 || secChoice > 100)
-		{
-			printf("Please enter a valid option\n");
-			scanf("%c", &secChoice);
-		}
-		switch(secChoice)
-		{
-			case 97:
-				rotationEncryption(readCipher());
-				break;
-			case 98:
-				cipher = writeCipher(1);
-				rotationEncryption(cipher);
-				break;
-			case 99:
-				plainTextWriter();
-				rotationEncryption(readCipher());
-				break;
-			case 100:
-				plainTextWriter();
-				cipher = writeCipher(1);
-				rotationEncryption(cipher);
-				break;
-		}
-		printf("\nThe resulting string is: '%s'", stringMakerOutput());
-		break;
-	case 2:
-		//This should call the function that will be used to decrypt rotation cipher
-		printf("\nYou selected 'Decrypt Rotation Cipher' You can choose from the following options:\n");
-		printf("	(a) Read plain text from 'input.txt' and cipher key from 'cipher.txt'\n");
-		printf("	(b) Read plain text from 'input.txt' and cipher key from stdin\n");
-		printf("	(c) Read plain text from stdin and cipher key from 'cipher.txt'\n");
-		printf("	(d) Read plain text and cipher key from stdin\n");
-		printf("Please enter a letter corresponding to your preference:");
-		scanf("\n%c", &secChoice);
-		while (secChoice < 97 || secChoice > 100)
-		{
-			if (secChoice < 97 || secChoice > 100)
-			{
-				printf("\nPlease enter a valid option:");
-				scanf("\n%c", &secChoice);
-			}
-			else 
-				break;
-		}
-		switch(secChoice)
-		{
-			case 97:
-				rotationEncryption(readCipher());
-				break;
-			case 98:
-				cipher = writeCipher(2);
-				rotationEncryption(cipher);
-				break;
-			case 99:
-				plainTextWriter();
-				rotationEncryption(readCipher());
-				break;
-			case 100:
-				cipher = writeCipher(2);
-				plainTextWriter();
-				//cipher = writeCipher(2);
-				rotationEncryption(cipher);
-				break;
-		}
-		/*
-		scanf("%d", &cipher);
-		cipher = cipher * -1;
-		rotationEncryption(cipher);*/
-		printf("\nThe resulting string is: '%s'", stringMakerOutput());
-		break;
-	case 3:
-		//This should call the function that will be used to encrypt substitution cipher
-		printf("Encrypt Substitution Cipher");
-		printf("\nYou selected 'Encrypt Substituion Cipher' You can choose from the following options:\n");
-		printf("	(a) Read plain text from 'input.txt' and cipher key from 'key.txt'\n");
-		printf("	(b) Read plain text from 'input.txt' and cipher key from stdin\n");
-		printf("	(c) Read plain text from stdin and cipher key from 'cipher.txt'\n");
-		printf("	(d) Read plain text and cipher key from stdin\n");
-		printf("Please enter a letter corresponding to your preference:");
-		scanf("\n%c", &secChoice);
-		while (secChoice < 97 || secChoice > 100)
-		{
-			if (secChoice < 97 || secChoice > 100)
-			{
-				printf("\nPlease enter a valid option:");
-				scanf("\n%c", &secChoice);
-			}
-			else 
-				break;
-		}
-		switch(secChoice)
-		{
-			case 97:
-				substitutionEncryption(1);
-				break;
-			case 98:
-				substitutionEncryption(2);
-				break;
-			case 99:
-				substitutionEncryption(3);
-				break;
-			case 100:
-				substitutionEncryption(4);
-				break;
-		}
-		printf("\nThe resulting string is: '%s'", stringMakerOutput());
-		break;
-	case 4:
-		//This should call the function that will be used to decrypt substitution cipher
-		printf("Decrypt Substitution Cipher");
-		printf("\nYou selected 'Decrypt Substituion Cipher' You can choose from the following options:\n");
-		printf("	(a) Read text from 'input.txt' and cipher key from 'key.txt'\n");
-		printf("	(b) Read text from 'input.txt' and cipher key from stdin\n");
-		printf("	(c) Read text from stdin and cipher key from 'cipher.txt'\n");
-		printf("	(d) Read text and cipher key from stdin\n");
-		printf("Please enter a letter corresponding to your preference:");
-		scanf("\n%c", &secChoice);
-		while (secChoice < 97 || secChoice> 100)
-		{
-			if (secChoice < 97 || secChoice > 100)
-			{
-				printf("\nPlease enter a valid option:");
-				scanf("\n%c", &secChoice);
-			}
-			else 
-				break;
-		}
-		switch(secChoice)
-		{
-			case 97:
-				substitutionDecryption(1, "");
-				break;
-			case 98:
-				substitutionDecryption(2,"");
-				break;
-			case 99:
-				substitutionDecryption(3,"");
-				break;
-			case 100:
-				substitutionDecryption(4,"");
-				break;
-		}
-		printf("\nThe resulting string is: '%s'", stringMakerOutput());
-		break;
-	case 5:
-		m = mostCommonLetter();
-		//printf("%d\n", m);
-		//cipher = (-1) * rotationCipherCalculator(0, m);
-		//printf("%d\n", cipher);
-		//rotationEncryption(cipher);
-		//int result = wordChecker();
-		//printf("%d\n", result);
-		int result = 0;
-		while (result != 1 && counter < 25)
-		{
-			cipher = (-1) * rotationCipherCalculator(counter, m);
-			//printf("Testing key %d\n", cipher * -1);
-			rotationEncryption(cipher);
-			result = wordChecker();
-			counter = counter + 1;
-		}
-		//finalString = stringMakerOutput();
-		printf("\nThe resulting string is: '%s'", stringMakerOutput());
-		break;
-	case 6:
-		//This should call the functions required to decrypt an unknown substitution cipher
-		subAnalysis();
-		substitutionDecryption(1, "");
-		score = subWordComparison();
-		char *str1 = subAnalysis2();
-		substitutionDecryption(0, str1);
-		if (score < subWordComparison())
-		{
-			FILE *key = fopen("key.txt", "w");
-			fprintf(key,"%s", str1);
-			fclose(key);
-		}
-		printf("str1 = %s\n", str1);
-		for (int n = 0; n < 10; n++)
-		{
-			char * str = keyModifier(0, str1);
-			printf("str = %s\n", str);
-			substitutionDecryption(0, str);
-			//score = subWordComparison();
-			if (score < subWordComparison())
-			{
-				for (int k=0; str[k] != 0; k++)
-				{
-					str1[k] = str[k];
-				}
-				printf("str1 = %s\n", str1);
-			}
-		}
-		FILE *key = fopen("key.txt", "w");
-		fprintf(key, "%s", str1);
-		fclose(key);
-		printf("\nThe resulting string isL '%s'", stringMakerOutput());
-		break;
-	default:
-		//This will happen if user doesn't select an option from 1 to 4 or something else goes wrong
-		printf("Something went wrong. You entered %d. Please enter 1, 2, 3, 4, 5 or 6 or cry because something is broken\n");
-		scanf("%d", &choice);
-	}
+	return 0;
+	
 }
-/*Doesn't work
-const char encryptRotation(char *input[])
-{
-	char textToEncrypt[] = input[];
-	printf("%c", textToEncrypt);
-	return "fish"; //should return encrypted string when complete
-}
-*/
 	
 void rotationEncryption(int cipher)
 {
@@ -527,6 +284,7 @@ void substitutionDecryption(int option, char str1[])
 	fscanf(keyText, "%s", key);
 	output = fopen("output.txt", "w");
 	n = 0;
+	char *u = "u2026";
 	while(1)
 	{
 		str[n] = fgetc(input);
@@ -534,17 +292,16 @@ void substitutionDecryption(int option, char str1[])
 			break;
 		else if (str[n] > 96 && str[n] < 123)
 			str[n] = str[n] - 32;
-		else if (str[n] > 125)
+		/*else if (str[n] == 85)
 		{
 			str[n] = 46;
 			n++;
 			str[n] = 46;
 			n++;
 			str[n] = 46;
-		}			
+		}*/			
 		n++;
 	}
-	printf("%s\n", str);
 	for (n = 0; str[n] != 0; n++)
 	{
 		for (int k=0; key[k] != 0; k++)
@@ -566,13 +323,13 @@ void substitutionDecryption(int option, char str1[])
 int mostCommonLetter()
 {
 	FILE *input;
-	char str[10000];
+	char str[2000] = {'0'};
 	int n = 0, a;
 	
 	input = fopen("input.txt", "r");
 		
-	int strCount[27];
-	
+	int *strCount;
+
 	while(1)
 	{
 		str[n] = fgetc(input);
@@ -583,100 +340,10 @@ int mostCommonLetter()
 		n++;
 	}
 	//printf("%s\n", str);
+	strCount = stringCount(str);
+	int count = 0;
 	for (n = 0; n<27; n++)
 	{
-		strCount[n] = 0;
-	}
-	for (n = 0; str[n] != 0; n++)
-	{
-		switch (str[n])
-		{
-			case 65:
-				strCount[0]++;
-				break;
-			case 66:
-				strCount[1]++;
-				break;
-			case 67:
-				strCount[2]++;
-				break;
-			case 68:
-				strCount[3]++;
-				break;
-			case 69:
-				strCount[4]++;
-				break;
-			case 70:
-				strCount[5]++;
-				break;
-			case 71:
-				strCount[6]++;
-				break;
-			case 72:
-				strCount[7]++;
-				break;
-			case 73:
-				strCount[8]++;
-				break;
-			case 74:
-				strCount[9]++;
-				break;
-			case 75:
-				strCount[10]++;
-				break;
-			case 76:
-				strCount[11]++;
-				break;
-			case 77:
-				strCount[12]++;
-				break;
-			case 78:
-				strCount[13]++;
-				break;
-			case 79:
-				strCount[14]++;
-				break;
-			case 80:
-				strCount[15]++;
-				break;
-			case 81:
-				strCount[16]++;
-				break;
-			case 82:
-				strCount[17]++;
-				break;
-			case 83:
-				strCount[18]++;
-				break;
-			case 84:
-				strCount[19]++;
-				break;
-			case 85:
-				strCount[20]++;
-				break;
-			case 86:
-				strCount[21]++;
-				break;
-			case 87:
-				strCount[22]++;
-				break;
-			case 88:
-				strCount[23]++;
-				break;
-			case 89:
-				strCount[24]++;
-				break;
-			case 90:
-				strCount[25]++;
-				break;
-			default:
-				break;
-		}
-	}
-	
-	for (n = 0; n<27; n++)
-	{
-		static int count = 0;
 		if (strCount[n] > count)
 		{
 			count = strCount[n];
@@ -684,13 +351,14 @@ int mostCommonLetter()
 			//i.e. a=0, b=1,... z=26
 	    }
 	}
-	printf("%d\n", a);
+	printf("a=%d\n", a);
+	fclose(input);
 	return a;
 }
 
 int rotationCipherCalculator(int option, int a)
 {
-	int static cipher = 0;
+	int cipher;
 	switch (option)
 	{
 		case 0:
@@ -859,8 +527,11 @@ char *stringMakerOutput()
 	FILE *input;
 	char fileName[100];
 	static char str[1000];
-	int option = 1;
-	
+	int option = 1, n;
+	for (n = 0; n < 999; n++)
+	{
+		str[n] = 0;
+	}
 	if (option ==0)
 	{
 		printf("Please enter the name of file from which to create string");
@@ -868,9 +539,9 @@ char *stringMakerOutput()
 		input = fopen(fileName, "r");
 	}
 	else
-		input = fopen("output.txt", "r+");
+		input = fopen("output.txt", "r");
 	
-	for (int n = 0; feof(input) == 0; n++)
+	for (n = 0; feof(input) == 0; n++)
 	{
 		fscanf(input, "%c", &str[n]);
 		if (str[n] == EOF)
@@ -878,6 +549,7 @@ char *stringMakerOutput()
 		//printf("String Tested is %s\n", str);
 	}
 	//printf("String Tested is %s\n", str);
+	fclose(input);
 	return str;
 }
 
@@ -936,9 +608,10 @@ int readCipher()
 	char c;
 	int cipher;
 	input = fopen("cipher.txt", "r");
-	c = fgetc(input);
-	cipher = c - '0';
+	fscanf(input, "%d", &cipher);
+	cipher = cipher;
 	fclose(input);
+	printf("Cipher used is %d\n", cipher);
 	return cipher;
 }
 
@@ -1128,7 +801,6 @@ char * subAnalysis2()
 		printf("%d\n", (int)str[n]);
 		if ((int)str[n] > 65 && str[n+1] > 65 && str[n+2] == str[n])// && (int)str[n+1] > 65 && str[n+2]== str[n])
 		{
-			printf("\n\nIt worked cunt\n\n");
 			char three = key[3];
 			char eight = key[8];
 			for (int k = 0; key[k] != 0; k++)
@@ -1176,7 +848,7 @@ int subAnalysis()
 	FILE *input = fopen("input.txt", "r");
 	FILE *output = fopen("key.txt", "w");
 	char key[26];
-	int strCount[26];
+	int *strCount;
 	int a, n, counter;
 	
 	for (n = 0; feof(input) == 0; n++)
@@ -1187,97 +859,7 @@ int subAnalysis()
 		//printf("String Tested is %s\n", str);
 	}
 	
-	for (n = 0; n <= 25; n++);
-	{
-		strCount[n] = 0;
-	}
-
-	for (n = 0; encryptedString[n] != 0; n++)
-	{
-		switch (encryptedString[n])
-		{
-			case 65:
-				strCount[0]++;
-				break;
-			case 66:
-				strCount[1] = strCount[1] + 1;
-				break;
-			case 67:
-				strCount[2]++;
-				break;
-			case 68:
-				strCount[3]++;
-				break;
-			case 69:
-				strCount[4]++;
-				break;
-			case 70:
-				strCount[5]++;
-				break;
-			case 71:
-				strCount[6]++;
-				break;
-			case 72:
-				strCount[7]++;
-				break;
-			case 73:
-				strCount[8]++;
-				break;
-			case 74:
-				strCount[9]++;
-				break;
-			case 75:
-				strCount[10]++;
-				break;
-			case 76:
-				strCount[11]++;
-				break;
-			case 77:
-				strCount[12]++;
-				break;
-			case 78:
-				strCount[13]++;
-				break;
-			case 79:
-				strCount[14]++;
-				break;
-			case 80:
-				strCount[15]++;
-				break;
-			case 81:
-				strCount[16]++;
-				break;
-			case 82:
-				strCount[17]++;
-				break;
-			case 83:
-				strCount[18]++;
-				break;
-			case 84:
-				strCount[19]++;
-				break;
-			case 85:
-				strCount[20]++;
-				break;
-			case 86:
-				strCount[21]++;
-				break;
-			case 87:
-				strCount[22]++;
-				break;
-			case 88:
-				strCount[23]++;
-				break;
-			case 89:
-				strCount[24]++;
-				break;
-			case 90:
-				strCount[25]++;
-				break;
-			default:
-				break;
-		}
-	}
+	strCount = stringCount(encryptedString);
 	for (counter = 0; counter <26; counter ++)
 	{
 		int count = 0;
@@ -1391,15 +973,28 @@ int subAnalysis()
 int duplicateChecker(char * someString)
 {
 	int n = 0;
-	int strCount[26];
+	int *strCount;
 	
-	for (n = 0; n <= 25; n++)
+	strCount = stringCount(someString);
+
+	for (n = 0; n<=25; n++)
+	{
+		if (strCount[n] > 1)
+			return 1;
+	}
+	return 0;
+}
+int *stringCount(char str[])
+{
+	static int strCount[26];
+	int n;
+	for (n = 0; n < 26; n ++)
 	{
 		strCount[n] = 0;
 	}
-	for (n = 0; someString[n] != 0; n++)
+	for (n = 0; str[n] != 0; n++)
 	{
-		switch (someString[n])
+		switch (str[n])
 		{
 			case 65:
 				strCount[0]++;
@@ -1483,14 +1078,9 @@ int duplicateChecker(char * someString)
 				break;
 		}
 	}
-
-	for (n = 0; n<=25; n++)
-	{
-		if (strCount[n] > 1)
-			return 1;
-	}
-	return 0;
+	return strCount;
 }
+	
 int randomNumber(int min, int max)
 {
 	//https://www.google.com/search?q=randomly+generate+numbers+between+two+values+in+c&oq=randomly+generate+numbers+between+two+values+in+c&aqs=chrome..69i57j0l5.18546j0j4&sourceid=chrome&ie=UTF-8#kpvalbx=1
@@ -1563,4 +1153,324 @@ void keyCaseChange()
 	FILE *keyWrite = fopen("key.txt", "w");
 	fprintf(keyWrite, "%s", keyHolder);
 	fclose(keyWrite);
+}
+
+void mainMenu()
+{	
+	printf("Available functions\n");
+	printf("	(1) Encrypt message using Rotation Cipher\n");
+	printf("	(2) Decrypt message using Rotation Cipher\n");
+	printf("	(3) Enccypt message using Substitution Cipher\n");
+	printf("	(4) Decrypt message using Substitution Cipher\n");
+	printf("	(5) Decrypt message using unknown rotation cipher\n");
+	printf("	(6) Decrypt message using unknown substitution cipher\n");
+	printf("	(7) Show Options\n");
+	printf("	(0) End\n");
+}
+
+void menu1()
+{
+	printf("\nYou selected 'Encrypt Rotation Cipher' You can choose from the following options:\n");
+	printf("	(a) Read plain text from 'input.txt' and cipher key from 'cipher.txt'\n");
+	printf("	(b) Read plain text from 'input.txt' and cipher key from stdin\n");
+	printf("	(c) Read plain text from stdin and cipher key from 'cipher.txt'\n");
+	printf("	(d) Read plain text and cipher key from stdin\n");
+	printf("\nPlease enter a letter corresponding to your preference: ");	
+}
+void menu2()
+{
+	printf("\nYou selected 'Decrypt Rotation Cipher' You can choose from the following options:\n");
+	printf("	(a) Read plain text from 'input.txt' and cipher key from 'cipher.txt'\n");
+	printf("	(b) Read plain text from 'input.txt' and cipher key from stdin\n");
+	printf("	(c) Read plain text from stdin and cipher key from 'cipher.txt'\n");
+	printf("	(d) Read plain text and cipher key from stdin\n");
+	printf("Please enter a letter corresponding to your preference:");
+}
+
+void menu3()
+{
+	printf("Encrypt Substitution Cipher");
+	printf("\nYou selected 'Encrypt Substituion Cipher' You can choose from the following options:\n");
+	printf("	(a) Read plain text from 'input.txt' and cipher key from 'key.txt'\n");
+	printf("	(b) Read plain text from 'input.txt' and cipher key from stdin\n");
+	printf("	(c) Read plain text from stdin and cipher key from 'cipher.txt'\n");
+	printf("	(d) Read plain text and cipher key from stdin\n");
+	printf("Please enter a letter corresponding to your preference:");	
+}
+
+void menu4()
+{
+	printf("Decrypt Substitution Cipher");
+	printf("\nYou selected 'Decrypt Substituion Cipher' You can choose from the following options:\n");
+	printf("	(a) Read text from 'input.txt' and cipher key from 'key.txt'\n");
+	printf("	(b) Read text from 'input.txt' and cipher key from stdin\n");
+	printf("	(c) Read text from stdin and cipher key from 'cipher.txt'\n");
+	printf("	(d) Read text and cipher key from stdin\n");
+	printf("Please enter a letter corresponding to your preference:");
+}
+
+int getNumber()
+{
+	int number;
+	scanf("%d", &number);
+	return number;
+}
+
+char getChar()
+{
+	char character;
+	scanf("%s", &character);
+	return character;
+}
+
+void rotEncChoice(char choice)
+{
+	int cipher;
+	switch (choice)
+	{
+		case 97:
+			rotationEncryption(readCipher());
+			break;
+		case 98:
+			cipher = writeCipher(1);
+			rotationEncryption(cipher);
+			break;
+		case 99:
+			plainTextWriter();
+			rotationEncryption(readCipher());
+			break;
+		case 100:
+			plainTextWriter();
+			cipher = writeCipher(1);
+			rotationEncryption(cipher);
+			break;
+		default:
+			printf("Something went wrong");
+			break;
+	}
+}
+
+void rotDecChoice(char choice)
+{
+	int cipher;
+	switch(choice)
+	{
+		case 97:
+			rotationEncryption(readCipher());
+			break;
+		case 98:
+			cipher = writeCipher(2);
+			rotationEncryption(cipher);
+			break;
+		case 99:
+			plainTextWriter();
+			rotationEncryption(readCipher());
+			break;
+		case 100:
+			cipher = writeCipher(2);
+			plainTextWriter();
+			//cipher = writeCipher(2);
+			rotationEncryption(cipher);
+			break;
+	}
+}
+
+void subEncChoice(char choice)
+{
+	switch(choice)
+	{
+		case 97:
+			substitutionEncryption(1);
+			break;
+		case 98:
+			substitutionEncryption(2);
+			break;
+		case 99:
+			substitutionEncryption(3);
+			break;
+		case 100:
+			substitutionEncryption(4);
+			break;
+	}
+}
+
+void subDecChoice(char choice)
+{
+	switch(choice)
+	{
+		case 97:
+			substitutionDecryption(1, "");
+			break;
+		case 98:
+			substitutionDecryption(2,"");
+			break;
+		case 99:
+			substitutionDecryption(3,"");
+			break;
+		case 100:
+			substitutionDecryption(4,"");
+			break;
+	}
+}
+
+void unRotDecrypt()
+{
+	int m, cipher, result = 0, counter = 0;
+	m = mostCommonLetter();
+	while (result != 1 && counter < 50)
+	{
+		cipher = (-1) * rotationCipherCalculator(counter, m);
+		rotationEncryption(cipher);
+		result = wordChecker();
+		counter = counter + 1;
+	}	
+}
+
+void unSubDecrypt()
+{
+	int score;
+	subAnalysis();
+	substitutionDecryption(1, "");
+	score = subWordComparison();
+	char *str1 = subAnalysis2();
+	substitutionDecryption(0, str1);
+	if (score < subWordComparison())
+	{
+		FILE *key = fopen("key.txt", "w");
+		fprintf(key,"%s", str1);
+		fclose(key);
+	}
+	printf("str1 = %s\n", str1);
+	for (int n = 0; n < 10; n++)
+	{
+		char * str = keyModifier(0, str1);
+		printf("str = %s\n", str);
+		substitutionDecryption(0, str);
+		//score = subWordComparison();
+		if (score < subWordComparison())
+		{
+			for (int k=0; str[k] != 0; k++)
+			{
+				str1[k] = str[k];
+			}
+			printf("str1 = %s\n", str1);
+		}
+	}
+	FILE *key = fopen("key.txt", "w");
+	fprintf(key, "%s", str1);
+	fclose(key);
+}
+int run()
+{
+	int choice = 8, score, end;
+	char toDecrypt[50], finalString[1000], secChoice = 0;
+	int cipher, counter = 0;
+	int m;
+	char *string;
+	
+	mainMenu();
+	
+	end = 1;
+	while (end != 0)
+	{
+		while (choice < 0 || choice > 7)
+		{
+			printf("Please select the corresponding number for the function you wish to use: ");
+			choice = getNumber();
+		}
+
+		switch(choice) 
+		{
+			case 0:
+				return 0;
+			case 1:
+				//This should call the function that will be used to encrypt rotation cipher
+				menu1();
+				secChoice = getChar();
+				while (secChoice < 97 || secChoice > 100)
+				{
+					printf("Please enter a valid option\n");
+					secChoice = getChar();
+				}
+				rotEncChoice(secChoice);
+				printf("\nThe resulting string is: '%s'", stringMakerOutput());
+				end = 0;
+				break;
+			case 2:
+				//This should call the function that will be used to decrypt rotation cipher
+				menu2();
+				secChoice = getChar();
+				while (secChoice < 97 || secChoice > 100)
+				{
+					if (secChoice < 97 || secChoice > 100)
+					{
+						printf("\nPlease enter a valid option:");
+						scanf("\n%c", &secChoice);
+					}
+					else 
+						break;
+				}
+				rotDecChoice(secChoice);
+				printf("\nThe resulting string is: '%s'", stringMakerOutput());
+				end = 0;
+				break;
+			case 3:
+				//This should call the function that will be used to encrypt substitution cipher
+				menu3();
+				secChoice = getChar();
+				while (secChoice < 97 || secChoice > 100)
+				{
+					if (secChoice < 97 || secChoice > 100)
+					{
+						printf("\nPlease enter a valid option:");
+						scanf("\n%c", &secChoice);
+					}
+					else 
+						break;
+				}
+				subEncChoice(secChoice);
+
+				printf("\nThe resulting string is: '%s'", stringMakerOutput());
+				end = 0;
+				break;
+			case 4:
+				//This should call the function that will be used to decrypt substitution cipher
+				menu4();
+				secChoice = getChar();
+				while (secChoice < 97 || secChoice> 100)
+				{
+					if (secChoice < 97 || secChoice > 100)
+					{
+						printf("\nPlease enter a valid option:");
+						scanf("\n%c", &secChoice);
+					}
+					else 
+						break;
+				}
+				subDecChoice(secChoice);
+				printf("\nThe resulting string is: '%s'", stringMakerOutput());
+				end = 0;
+				break;
+			case 5:
+				unRotDecrypt();
+				printf("\nThe resulting string is: '%s'\n", stringMakerOutput());
+				end = 0;
+				break;
+			case 6:
+				//This should call the functions required to decrypt an unknown substitution cipher
+				unSubDecrypt();
+				printf("\nThe resulting string isL '%s'\n", stringMakerOutput());
+				end = 0;
+				break;
+			case 7:
+				mainMenu();
+				end = 0;
+				break;
+			default:
+				//This will happen if user doesn't select an option from 1 to 4 or something else goes wrong
+				printf("Something went wrong. You entered %d. Please enter 1, 2, 3, 4, 5 or 6 or cry because something is broken\n");
+				scanf("%d", &choice);
+				return 0;
+		}
+	}
 }
