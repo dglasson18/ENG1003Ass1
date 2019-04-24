@@ -527,7 +527,6 @@ void substitutionDecryption(int option, char str1[])
 	fscanf(keyText, "%s", key);
 	output = fopen("output.txt", "w");
 	n = 0;
-	char c = "à";
 	while(1)
 	{
 		str[n] = fgetc(input);
@@ -885,10 +884,7 @@ char *stringMakerOutput()
 int subWordComparison()
 {
 	FILE *wordsForComparison1 = fopen("wordlist10000.txt", "r");
-	//FILE *wordsForComparison2 = fopen("words2.txt", "r");
-	//FILE *wordsForComparison3 = fopen("words3.txt", "r");
-	char words1[100000];//, words2[1000000];
-	//char words3[999999];
+	char words1[100000];
 	int n, k = 0, score = 0,end = 1;
 	FILE *decryptedString = fopen("output.txt", "r");
 	char str[10000];
@@ -927,79 +923,6 @@ int subWordComparison()
 			}
 		}
 	}
-		/*
-		for (k = 0; words2[k] != 0; k++)
-		{
-			if (str[n] == words2[k] && str[n+1] == words2[k+1] && str[n+2] == words2[k+2] && str[n+3] == words2[k+3])
-			{
-				score++;
-			}
-		}
-	}
-	while (end == 1)
-	{
-		for (n = 0; n < 5 ;n++)
-		{
-			fscanf(wordsForComparison1,"%c", &words1[n]);
-			if (words1[n] = EOF)
-			{
-				printf("It Broke");
-				end = 0;
-				break;
-			}
-			else if(words1[n] > 95 && words1[n] < 123)
-			{
-				words1[n] = words1[n] - 32;
-			}
-			printf("%s\n", words1);
-		}
-		for (k = 0; str[k] != 0; k++)
-		{
-			if (str[k] == words1[0] && str[k+1] == words1[1] && str[k+2] == words1[2] && str[k+3] == words1[3])
-				score++;
-		}
-		printf("%s\n", words1);
-		score = score + 10;
-	}
-	printf("%d\n", score);
-		
-	*/
-	//printf("%s\n", words1);
-	//printf("%s\n", words1);
-	/*
-	for (n = 0; n < 999999; n++)
-	{
-		fscanf(wordsForComparison2, "%c", &words2[n]);
-		if (words2[n] == EOF)
-		{
-			printf("Endofstring");
-			break;
-		}
-		else if(words2[n] > 95 && words2[n] < 123)
-		{
-			words2[n] = words2[n] - 32;
-		}
-	}
-	//printf("%s\n", words2);
-			
-	for (n = 0; n < 900000; n++)
-	{
-		//words3[n] = fgetc(wordsForComparison3);
-		fscanf(wordsForComparison3, "%c", &words3[n]);
-		if (words3[n] == EOF)
-		{
-			printf("EndofString");
-			break;
-		}
-		else if(words3[n] > 95 && words3[n] < 123)
-		{
-			words3[n] = words3[n] - 32;
-		}
-	}
-	//printf("%s\n", words3);
-	*/
-
-	
 	printf("%d\n", score);
 	fclose(wordsForComparison1);
 	fclose(decryptedString);
@@ -1121,7 +1044,7 @@ int wordChecker()
 		else if ((stringToBeChecked[n] == '.' && stringToBeChecked[n+1] == '.'))
 		{
 			printf("String ends");
-			stringToBeChecked[n+1] = NULL;
+			stringToBeChecked[n+1] = 0;
 		}
 	}
 	//printf("String checked %s", stringToBeChecked);
@@ -1264,16 +1187,6 @@ int subAnalysis()
 		//printf("String Tested is %s\n", str);
 	}
 	
-	/*for (n = 0; encryptedString[n] != EOF; n++)
-	{
-		encryptedString[n] = fgetc(input);
-		if (encryptedString[n] == EOF)
-		{
-			printf("The end of file has been reached\n");
-			break;
-		}
-	}
-	*/
 	for (n = 0; n <= 25; n++);
 	{
 		strCount[n] = 0;
@@ -1464,18 +1377,7 @@ int subAnalysis()
 				break;
 		}
 	}
-	/*
-	for (n = 0; encryptedString[n] != 0; n++)
-	{
-		if (encryptedString[n] == " " && (encryptedString[n+1] < 91 && encryptedString[n+1] > 64) && (encryptedString[n+2] < 91 && encryptedString[n+2] > 64) && (encryptedString[n+3] < 91 && encryptedString[n+3] > 64) && encryptedString[n+4] == " ")
-		{
-			key[19] = encryptedString[n+1];
-			key[7] = encryptedString[n+2];
-			key[4] = encryptedString[n+3];
-		}
-		else if (encryptedString[n] == " " && encryptedString[n+1] > 64 && encryptedString[n+2] == " ")
-			key[0] = encryptedString[n+1];
-	}*/
+
 	for (n = 0; n < 26; n++)
 	{
 		fputc(key[n], output);
@@ -1637,13 +1539,6 @@ char * keyModifier(int option, char str[])
 	keyHolder[b] = keyHolder[c];
 	keyHolder[c] = d;
 	fclose(key);
-	/*
-	FILE *key = fopen("key.txt", "w");
-	for (n = 0; keyHolder[n] != 0; n++)
-	{
-		fputc(keyHolder[n], key);
-	}
-	fclose(key);*/
 	printf("%s\n", keyHolder);
 	return keyHolder;
 }
