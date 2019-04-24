@@ -29,7 +29,10 @@ int duplicateChecker(char * someString);
 int subAnalysis();
 int subWordComparison();
 int randomNumber();
-char *keyModifier();
+char *keyModifier(int option, char str[]);
+char *subAnalysis2();
+int keyLengthCheck(char key[]);
+void keyCaseChange();
 
 int main()
 {
@@ -40,6 +43,8 @@ int main()
 	int end = 1;
 	int m;
 	char *string;
+
+	//subAnalysis();
 	//subWordComparison();
 	//printf("Score: %d\n", subWordComparison());
 	/*Basic User Interface
@@ -152,7 +157,7 @@ int main()
 	case 3:
 		//This should call the function that will be used to encrypt substitution cipher
 		printf("Encrypt Substitution Cipher");
-		printf("\nYou selected 'Decrypt Rotation Cipher' You can choose from the following options:\n");
+		printf("\nYou selected 'Encrypt Substituion Cipher' You can choose from the following options:\n");
 		printf("	(a) Read plain text from 'input.txt' and cipher key from 'key.txt'\n");
 		printf("	(b) Read plain text from 'input.txt' and cipher key from stdin\n");
 		printf("	(c) Read plain text from stdin and cipher key from 'cipher.txt'\n");
@@ -172,30 +177,55 @@ int main()
 		switch(secChoice)
 		{
 			case 97:
-				//substitutionEncryption();
+				substitutionEncryption(1);
 				break;
 			case 98:
-				cipher = writeCipher(2);
-				rotationEncryption(cipher);
+				substitutionEncryption(2);
 				break;
 			case 99:
-				plainTextWriter();
-				rotationEncryption(readCipher());
+				substitutionEncryption(3);
 				break;
 			case 100:
-				cipher = writeCipher(2);
-				plainTextWriter();
-				//cipher = writeCipher(2);
-				rotationEncryption(cipher);
+				substitutionEncryption(4);
 				break;
 		}
-		substitutionEncryption();
 		printf("\nThe resulting string is: '%s'", stringMakerOutput());
 		break;
 	case 4:
 		//This should call the function that will be used to decrypt substitution cipher
 		printf("Decrypt Substitution Cipher");
-		substitutionDecryption(1, "");
+		printf("\nYou selected 'Decrypt Substituion Cipher' You can choose from the following options:\n");
+		printf("	(a) Read text from 'input.txt' and cipher key from 'key.txt'\n");
+		printf("	(b) Read text from 'input.txt' and cipher key from stdin\n");
+		printf("	(c) Read text from stdin and cipher key from 'cipher.txt'\n");
+		printf("	(d) Read text and cipher key from stdin\n");
+		printf("Please enter a letter corresponding to your preference:");
+		scanf("\n%c", &secChoice);
+		while (secChoice < 97 || secChoice> 100)
+		{
+			if (secChoice < 97 || secChoice > 100)
+			{
+				printf("\nPlease enter a valid option:");
+				scanf("\n%c", &secChoice);
+			}
+			else 
+				break;
+		}
+		switch(secChoice)
+		{
+			case 97:
+				substitutionDecryption(1, "");
+				break;
+			case 98:
+				substitutionDecryption(2,"");
+				break;
+			case 99:
+				substitutionDecryption(3,"");
+				break;
+			case 100:
+				substitutionDecryption(4,"");
+				break;
+		}
 		printf("\nThe resulting string is: '%s'", stringMakerOutput());
 		break;
 	case 5:
@@ -223,18 +253,33 @@ int main()
 		subAnalysis();
 		substitutionDecryption(1, "");
 		score = subWordComparison();
-		for (int n = 0; n < 10000; n++)
+		char *str1 = subAnalysis2();
+		substitutionDecryption(0, str1);
+		if (score < subWordComparison())
 		{
-			char *str = keyModifier();
+			FILE *key = fopen("key.txt", "w");
+			fprintf(key,"%s", str1);
+			fclose(key);
+		}
+		printf("str1 = %s\n", str1);
+		for (int n = 0; n < 10; n++)
+		{
+			char * str = keyModifier(0, str1);
+			printf("str = %s\n", str);
 			substitutionDecryption(0, str);
+			//score = subWordComparison();
 			if (score < subWordComparison())
 			{
-				score = subWordComparison();
-				FILE *key = fopen("keytext.txt", "w");
-				fprintf(key, "%s", str);
-				fclose(key);
+				for (int k=0; str[k] != 0; k++)
+				{
+					str1[k] = str[k];
+				}
+				printf("str1 = %s\n", str1);
 			}
 		}
+		FILE *key = fopen("key.txt", "w");
+		fprintf(key, "%s", str1);
+		fclose(key);
 		printf("\nThe resulting string isL '%s'", stringMakerOutput());
 		break;
 	default:
@@ -295,115 +340,150 @@ void rotationEncryption(int cipher)
 	fclose(output);
 }
 
-void substitutionEncryption()
+void substitutionEncryption(int option)
 {
 	char key[27];// = {'q','w','e','r','t','y','u','i','o','p','a','s','d','f','g','h','j','k','l','z','x','c','v','b','n','m','\0'};
 	FILE *input;
 	FILE *output;
 	FILE *keyText;
+	int end = 1;
 	
-	input = fopen("test.txt", "r");
-	keyText = fopen("key.txt", "r");
-	output = fopen("output.txt", "w");
-	fscanf(keyText, "%s", key);
+
 	char str;
+	while (end != 0)
+	{
+		if (option == 1)
+		{
+			keyCaseChange();
+		}
+		else if (option == 2)
+		{
+			writeKey();
+		}
+		else if (option == 3)
+		{
+			plainTextWriter();
+			keyCaseChange();
+		}
+		else if (option == 4)
+		{
+			plainTextWriter();
+			writeKey();
+		}
+		
+		keyText = fopen("key.txt", "r");
+		fscanf(keyText, "%s", key);
+		end = keyLengthCheck(key) + duplicateChecker(key);
+
+		if (end != 0)
+		{
+			printf("There is something wrong with the key, please enter a new key\n");
+			writeKey();
+		}
+	}
+	printf("The key being used is %s\n", key);
+	input = fopen("input.txt", "r");
+	output = fopen("output.txt", "w");
+	
 	while(1)
 	{
 		str = fgetc(input);
 		
 		if (str == EOF)
 			break;
-		else
+		else if (str > 65 && str < 123)
 		{
-			switch (str)
-			{
-				case 97:
-					str = key[0];
-					break;
-				case 98:
-					str = key[1];
-					break;
-				case 99:
-					str = key[2];
-					break;
-				case 100:
-					str = key[3];
-					break;
-				case 101:
-					str = key[4];
-					break;
-				case 102:
-					str = key[5];
-					break;
-				case 103:
-					str = key[6];
-					break;
-				case 104:
-					str = key[7];
-					break;
-				case 105:
-					str = key[8];
-					break;
-				case 106:
-					str = key[9];
-					break;
-				case 107:
-					str = key[10];
-					break;
-				case 108:
-					str = key[11];
-					break;
-				case 109:
-					str = key[12];
-					break;
-				case 110:
-					str = key[13];
-					break;
-				case 111:
-					str = key[14];
-					break;
-				case 112:
-					str = key[15];
-					break;
-				case 113:
-					str = key[16];
-					break;
-				case 114:
-					str = key[17];
-					break;
-				case 115:
-					str = key[18];
-					break;
-				case 116:
-					str = key[19];
-					break;
-				case 117:
-					str = key[20];
-					break;
-				case 118:
-					str = key[21];
-					break;
-				case 119:
-					str = key[22];
-					break;
-				case 120:
-					str = key[23];
-					break;
-				case 121:
-					str = key[24];
-					break;
-				case 122:
-					str = key[25];
-					break;
-				case 123:
-					str = key[26];
-					break;
-				default:
-					break;
-					str = str;
-			}
-			fputc(str, output);
+			str = str - 32;
 		}
+		switch (str)
+		{
+			case 65:
+				str = key[0];
+				break;
+			case 66:
+				str = key[1];
+				break;
+			case 67:
+				str = key[2];
+				break;
+			case 68:
+				str = key[3];
+				break;
+			case 69:
+				str = key[4];
+				break;
+			case 70:
+				str = key[5];
+				break;
+			case 71:
+				str = key[6];
+				break;
+			case 72:
+				str = key[7];
+				break;
+			case 73:
+				str = key[8];
+				break;
+			case 74:
+				str = key[9];
+				break;
+			case 75:
+				str = key[10];
+				break;
+			case 76:
+				str = key[11];
+				break;
+			case 77:
+				str = key[12];
+				break;
+			case 78:
+				str = key[13];
+				break;
+			case 79:
+				str = key[14];
+				break;
+			case 80:
+				str = key[15];
+				break;
+			case 81:
+				str = key[16];
+				break;
+			case 82:
+				str = key[17];
+				break;
+			case 83:
+				str = key[18];
+				break;
+			case 84:
+				str = key[19];
+				break;
+			case 85:
+				str = key[20];
+				break;
+			case 86:
+				str = key[21];
+				break;
+			case 87:
+				str = key[22];
+				break;
+			case 88:
+				str = key[23];
+				break;
+			case 89:
+				str = key[24];
+				break;
+			case 90:
+				str = key[25];
+				break;
+			case 91:
+				str = key[26];
+				break;
+			default:
+				break;
+				str = str;
+		}
+		fputc(str, output);
+		
 	}
 	fclose(input);
 	fclose(output);
@@ -412,25 +492,29 @@ void substitutionEncryption()
 
 void substitutionDecryption(int option, char str1[])
 {
-	char key[100]; //= {'q','w','e','r','t','y','u','i','o','p','a','s','d','f','g','h','j','k','l','z','x','c','v','b','n','m','\0'};
+	char key[27]; //= {'q','w','e','r','t','y','u','i','o','p','a','s','d','f','g','h','j','k','l','z','x','c','v','b','n','m','\0'};
 	FILE *input;
 	FILE *output;
 	FILE *keyText;
-	int n = 0;
-	char str;
-	
-	input = fopen("input.txt", "r");
-	output = fopen("output.txt", "w");
-	keyText = fopen("key.txt", "r");
+	int n = 0, end = 1;
+	char str[10000];
 	if (option == 1)
 	{
-		while(feof(keyText) == 0)
-		{
-			fscanf(keyText, "%c", &key[n]);
-			n++;
-			
-		}
+		keyCaseChange();
 	}
+	else if (option == 2)
+	{
+		writeKey();
+	}
+	else if (option == 3)
+	{
+		plainTextWriter();
+	}
+	else if (option == 4)
+	{
+		plainTextWriter();
+		writeKey();
+	}		
 	else
 	{
 		for (n = 0; str1[n] != 0; n++)
@@ -438,29 +522,43 @@ void substitutionDecryption(int option, char str1[])
 			key[n] = str1[n];
 		}
 	}
-	
+	input = fopen("input.txt", "r");
+	keyText = fopen("key.txt", "r");
+	fscanf(keyText, "%s", key);
+	output = fopen("output.txt", "w");
+	n = 0;
+	char c = "à";
 	while(1)
 	{
-		str = fgetc(input);
-		if (str == EOF)
+		str[n] = fgetc(input);
+		if (str[n] == EOF)
 			break;
-		else
+		else if (str[n] > 96 && str[n] < 123)
+			str[n] = str[n] - 32;
+		else if (str[n] > 125)
 		{
-			for (int k=0; key[k] != 0; k++)
-			{
-				if (str == 32 || str == '.' || str == '?')
-				{
-					str = str;
-				}
-				else if (str == key[k])
-				{
-					str = k + 65;
-					break;
-				}
-			}
-			fputc(str, output);
-		}
+			str[n] = 46;
+			n++;
+			str[n] = 46;
+			n++;
+			str[n] = 46;
+		}			
+		n++;
 	}
+	printf("%s\n", str);
+	for (n = 0; str[n] != 0; n++)
+	{
+		for (int k=0; key[k] != 0; k++)
+		{
+			if (str[n] == key[k])
+			{
+				str[n] = k + 65;
+				break;
+			}		
+		}
+		fputc(str[n], output);
+	}
+	
 	fclose(input);
 	fclose(output);
 	fclose(keyText);
@@ -991,7 +1089,7 @@ void writeKey()
 				}
 			}
 			//printf("%d\n", duplicateChecker(keyHolder));
-			if (duplicateChecker(keyHolder) == 0)
+			if (duplicateChecker(keyHolder) == 1)
 			{
 				printf("The key entered contains a duplicate, please enter the full key again.\n");
 				scanf("%s", keyHolder);
@@ -1032,13 +1130,32 @@ int wordChecker()
 	else 
 		return 0;
 }
-
+int keyLengthCheck(char key[])
+{
+	int n;
+	for (n = 0; key[n] != 0; n++)
+	{
+	}
+	printf("n = %d\n", n);
+	if (n<26)
+	{
+		printf("The key isn't long enough\n");
+		return 1;
+	}
+	else if (n > 26)
+	{
+		printf("The key is too long\n");
+		return 1;
+	}
+	else
+		return 0;
+}
 void plainTextWriter()
 {
 	FILE * plainText = fopen("input.txt", "w");
 	char inputText[1000];
 	
-	printf("Please enter the plain text you would like to encrypt\n");
+	printf("Please enter the plain text you would like to encrypt or decrypt: \n");
 	scanf("\n");
 	scanf("%[^\n]s", inputText);
 	printf("The string you entered is %s\n", inputText);
@@ -1054,7 +1171,82 @@ void plainTextWriter()
 	return;
 }
 	
-
+char * subAnalysis2()
+{
+	char encryptedString[10000];
+	FILE *theEncryptedString = fopen("input.txt", "r");
+	FILE *theKey = fopen("key.txt", "r");
+	static char key[26];
+	char stringToCompare[6] = " DID ";
+	int n;
+	char str[10000];
+	
+	for (n = 0; feof(theEncryptedString) == 0; n++)
+	{
+		fscanf(theEncryptedString, "%c", &encryptedString[n]);
+		if (encryptedString[n] == EOF)
+			break;
+	}
+	for (n = 0; encryptedString[n] !=0; n++)
+	{
+		str[n] = encryptedString[n];
+	}
+	
+	for (n = 0; feof(theKey) == 0; n++)
+	{
+		fscanf(theKey, "%c", &key[n]);
+		if (key[n] == EOF)
+			break;
+	}
+	printf("String in subanalysis2 is %s\n", encryptedString);
+	for (n=0; str[n] != 0; n++)
+	{
+		printf("%c", encryptedString[n]);
+		printf("%d\n", (int)str[n]);
+		if ((int)str[n] > 65 && str[n+1] > 65 && str[n+2] == str[n])// && (int)str[n+1] > 65 && str[n+2]== str[n])
+		{
+			printf("\n\nIt worked cunt\n\n");
+			char three = key[3];
+			char eight = key[8];
+			for (int k = 0; key[k] != 0; k++)
+			{
+				if (key[k] == str[n])
+					key[k] = three;
+				else if (key[k] == str[n+1])
+					key[k] = eight;
+			}
+			key[3] = str[n];
+			key[8] = str[n+1];
+			break;
+		}
+	}
+	for (n=0; str[n] != 0; n++)
+	{
+		if(str[n] == 32 && str[n+1] >65 && str[n+2] > 65 && str[n+3] == 44 && str[n+4] > 65)
+		{
+			char eight = key[8];
+			char nineteen = key[19];
+			char eighteen = key[18];
+			for (int k = 0; key[k] != 0; k++)
+			{
+				if (key[k] == str[n+1])
+					key[k] = eight;
+				else if (key[k] == str[n+2])
+					key[k] = nineteen;
+				else if (key[k] == str[n+4])
+					key[k] == eighteen;
+			}
+			key[8] = str[n+1];
+			key[19] = str[n+2];
+			key[18] = str[n+4];
+			break;
+		}
+	}
+	
+	fclose(theEncryptedString);
+	fclose(theKey);
+	return key;
+}
 int subAnalysis()
 {
 	char encryptedString[10000];
@@ -1186,9 +1378,8 @@ int subAnalysis()
 				//holds the value in the string that corresponds to the letter in the alpahbet
 				//i.e. a=0, b=1,... z=26
 			}
-			
 		}
-		strCount[a] = 0;
+		strCount[a] = -1;
 		switch (counter)
 		{
 			case 0:
@@ -1394,9 +1585,9 @@ int duplicateChecker(char * someString)
 	for (n = 0; n<=25; n++)
 	{
 		if (strCount[n] > 1)
-			return 0;
+			return 1;
 	}
-	return 1;
+	return 0;
 }
 int randomNumber(int min, int max)
 {
@@ -1409,33 +1600,43 @@ int randomNumber(int min, int max)
 	return (x + min);
 }
 
-char * keyModifier()
+char * keyModifier(int option, char str[])
 {
-	int b = randomNumber(0, 25),n, d;
+	int b = randomNumber(0, 25),n;
 	printf("%d\n", b);
-	char c = (char)randomNumber(65, 90);
-	printf("%c\n", c);
-	static char keyHolder[27];
+	int c = randomNumber(0, 25);
+	printf("%d\n", c);
+	static char keyHolder[26];
 	FILE *key = fopen("key.txt", "r");
 	int end = 1, prelimEnd = 1;
-	
-	for (n = 0; feof(key) == 0; n++)
+	char d;
+	if (option == 1)
 	{
-		fscanf(key, "%c", &keyHolder[n]);
-		if (keyHolder[n] == EOF)
-			break;
-		//printf("String Tested is %s\n", str);
-	}
-	fclose(key);
-	for (n = 0; keyHolder[n] != c; n++)
-	{
-		if (keyHolder[n] == c)
+		for (n = 0; n<27 ; n++)
 		{
-			keyHolder[n] = keyHolder[b];
-			break;
+			//fscanf(key, "%c", &keyHolder[n]);
+			keyHolder[n] = fgetc(key);
+			if (keyHolder[n] == EOF)
+			{
+				keyHolder[n] = 0;
+				break;
+			}
+			//printf("String Tested is %s\n", str);
 		}
 	}
-	keyHolder[b] = c;
+	else 
+	{
+		for(n = 0; str[n] != 0; n++)
+		{
+			keyHolder[n] = str[n];
+		}
+	}
+	printf("original key %sis\n", keyHolder);
+	
+	d = keyHolder[b];
+	keyHolder[b] = keyHolder[c];
+	keyHolder[c] = d;
+	fclose(key);
 	/*
 	FILE *key = fopen("key.txt", "w");
 	for (n = 0; keyHolder[n] != 0; n++)
@@ -1445,4 +1646,26 @@ char * keyModifier()
 	fclose(key);*/
 	printf("%s\n", keyHolder);
 	return keyHolder;
+}
+void keyCaseChange()
+{
+	FILE *key = fopen("key.txt", "r");
+	char keyHolder[27];
+	int n;
+	fscanf(key, "%s", keyHolder);
+	for (n = 0; keyHolder[n] != 0; n++)
+	{
+		if (keyHolder[n] == EOF)
+			break;
+		else if (keyHolder[n] < 123 && keyHolder[n] > 96)
+		{
+			keyHolder[n] = keyHolder[n] - 32;
+		}
+	}
+	fclose(key);
+	printf("Key was changed to \n%s\n",keyHolder);
+	
+	FILE *keyWrite = fopen("key.txt", "w");
+	fprintf(keyWrite, "%s", keyHolder);
+	fclose(keyWrite);
 }
