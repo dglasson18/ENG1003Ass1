@@ -362,6 +362,10 @@ void rotEncChoice(char choice)
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 
+/*rotDecChoice takes a char, intended to be a,b,c or d, as an argument and calls a function based on that char. This function
+controls which variation of rotation decryption is completed. It does not have a return value, as any work done is stored in input, 
+output or cipher files. The rotationEncryption() function is reused as a rotation cipher can be decrypted following the same process
+as encryption, but by reversing the sign of the cipher used during encryption*/ 
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 void rotDecChoice(char choice)
 {
@@ -369,79 +373,147 @@ void rotDecChoice(char choice)
 	switch(choice)
 	{
 		case 97:
-			rotationEncryption(readCipher());
+			//case97 takes both the text to be decrypted and the cipher from input.txt and cipher.txt
+			//the negative sign is placed in front of readCipher() to reverse the direction of the shift, hence decrypting the text
+			rotationEncryption(-readCipher());
 			break;
 		case 98:
+			//case98 allows the user to specify the cipher that was used to encrypt the text, while the text is read from input.txt
+			//2 is passed as an argument of writeCipher() to ensure that the correct string is printed to the console, and that the
+			//cipher is set to have the opposite sign of the original sign, thus allowing decryption
 			cipher = writeCipher(2);
+			//cipher is passed as an argument to rotationEncryption, text is read from input.txt, cipher doesn't need to be modified
+			//as sign has already been set
 			rotationEncryption(cipher);
 			break;
 		case 99:
+			//case99 allows the user to specify the text that is being decrypted through stdin
+			//plainTextWriter takes user input and stores it in input.txt, where it can then be read by rotationEncryption()
 			plainTextWriter();
-			rotationEncryption(readCipher());
+			//negative sign placed in argument for same reason as case97
+			rotationEncryption(-readCipher());
 			break;
 		case 100:
+			//case100 allows the user to specify both the text and cipher that will be used via stdin using writeCipher() and
+			//plainTextWriter() as explained above
 			cipher = writeCipher(2);
 			plainTextWriter();
-			//cipher = writeCipher(2);
+			//rotationEncryption carries out 'encryption' using cipher of opposite sign specified with writeCipher(2) and passed
+			//as an argument to the function, thus decrypting the text.
 			rotationEncryption(cipher);
 			break;
 	}
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 
+/*subEncChoice takes a char, intended to be a,b,c or d as an argument and calls a function based on that char. This function 
+controls which variation of substitution encryption is completed. It does not have a return value, as any string manipulation is 
+stored in input.txt, output.txt and key.txt, where it can then be read and manipulated by other functions as required.*/
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 void subEncChoice(char choice)
 {
+	//switch statement controls which function is called based on user input, which is passed to the function as an argument
 	switch(choice)
 	{
+		//case97 results in the text to be encrypted and the key being used to be read from input.txt and key.txt respectively
 		case 97:
+			//substitutionEncryption()calls the function that carries out substitution encryption, while the argument of 1 specifies
+			//that only a key/file and case check be carried out (see function for more)
 			substitutionEncryption(1);
 			break;
+		//case98 results in the text to be encrypted being read from key.txt, and the key being read from stdin
 		case 98:
+			//same as 97, however, argument of 2 causes substitutionEncryption() to call another function that enables
+			//the user to input a key (see function for more)
 			substitutionEncryption(2);
 			break;
+		//case99 results in the text to be encrypted being read from stdin and the key being read from key.txt
 		case 99:
+			//same as 97, however, argument of 3 causes substitutionEncryption() to call another function that enables
+			//the user to input plain text, which can then be encrypted (see function for more)
 			substitutionEncryption(3);
 			break;
+		//case100 results in the text to be encrypted and the key being used to be read from stdin
 		case 100:
+			//same as 97, however, argument of 4 causes substitutionEncryption() to call functions that enable the user
+			//to input key and plain text, as in case 98 and 99 respectively, before carrying out encryption (see function for more)
 			substitutionEncryption(4);
 			break;
 	}
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 
+/*sunDecChoice takes a char, intended to be a,b,c or d as an argument and calls a function based on that char. This function
+controls which verions of substitution decryption is completed. It does not have a return value, as any string manipulation is
+stored in input.txt, output.txt or ket.txt, where it can then be read and manipulated by other functions as required.*/
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 void subDecChoice(char choice)
 {
 	switch(choice)
 	{
+		//case97 results in the text to be decrypted and the key being used to be read from input.txt and key.txt respectively
 		case 97:
+			//substitutionDecryption() calls the function that carrious out substitution decryption. The argument of 1 specifies
+			//that only a key/file and case check be carried out, while the char array is left empty, as it isn't when the int
+			//argument of the function is equal to 1. For more details see function
 			substitutionDecryption(1, "");
 			break;
+		//case98 results in the text to be decrypted being read from input.txt and the key being read from stdin
 		case 98:
+			//argument of 2 specifies that key will be read from stdin using a function called within substitutionDecryption()
+			//otherwise same as outlined above
 			substitutionDecryption(2,"");
 			break;
+		//case99 results in the text to be decrypted being read from stdin and the key being read from ket.txt
 		case 99:
+			//argument of 3 specifies that text will be read from stdin using a function called within substitutionDecryption()
+			//otherwise same as outlined above
 			substitutionDecryption(3,"");
 			break;
+		//case100 results in the text to be decrypted and the key being used to be read from stdin
 		case 100:
+			//argument of 4 specifies that text and key will be read from stdin using functions called within substitutionDecryption()
+			//otherwise same as outlined above
 			substitutionDecryption(4,"");
 			break;
 	}
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 
+/*unRotDecrypt is the function called when a user specifies that they wish to complete rotation decryption on a piece of text in
+for which the key is unknown. Analysis is carried out on the text to determine the most common letter. It is then assumed that this
+letter is e and the rotation is calculated accordingly. A cipher of the opposite sign is calculated and decryption is completed.
+The resulting string is then checked for common words, and if none are found, moves on to another key using rotationCipherCalculator()
+, testing each one until text is produced that matches with common words. A result of 1 is then returned and the loop ends and 
+decryption is complete./
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 void unRotDecrypt()
 {
+	/*declaration of int variables used in function:
+	 - m stores the result of calling mostCommonLetter(), which analyses text for the most common letter, e.g. a = 97
+	 - cipher stores the cipher that will be passed as an argument to rotationEncryption()
+	 - result stores the return value of wordChecker(), which is used to control the loop that repeats the process until decryption
+	   is complete
+	 - counter stores the number of times decryption has been attempted, and is passed as an argument to rotationCipherCalculator()
+	   to help generate a value for cipher*/
 	int m, cipher, result = 0, counter = 0;
+	/*mostCommonLetter is called, with it's return value stored in m. This is then passed as an argument to rotationCipherCalculator()
+	to help determine the initial value for cipher. Once the loop below has run once, m becomes redundant.*/
 	m = mostCommonLetter();
-	while (result != 1 && counter < 50)
+	/*while loop that will repeat the decryption process until the text is identified as having been decrypted (result = 1), or all 
+	possible cipher values (positive and negative) that can be generated by rotationCipherCalculator(see function for more info)
+	have been tested*/
+	while (result != 1 && counter < 52)
 	{
+		//rotationCipherCalculator() is called. Counter controls which cipher key is returned, while m helps generate the key
 		cipher = (-1) * rotationCipherCalculator(counter, m);
+		//decryption is carried out using cipher generated above
 		rotationEncryption(cipher);
+		/*the resulting string is tested. If it contains common english words, a value of 1 is returned which will end loop, otherwise
+		0 is returned and loop will continue to run*/
 		result = wordChecker();
-		counter = counter + 1;
+		//counter is incremented to ensure that cipher value changes after each iteration of loop. Also assists with flow control
+		counter++
 	}	
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
@@ -483,6 +555,8 @@ void unSubDecrypt()
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 
+/*rotationEncryption() is the function that performs the encryption and decryption of a piece of text. It reads the text to be
+encrypted/decrypted from input.txt and writes it to output.txt, while the cipher is passed to the function as an argument.
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 void rotationEncryption(int cipher)
 {
