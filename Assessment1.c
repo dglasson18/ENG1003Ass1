@@ -951,205 +951,296 @@ void substitutionDecryption(int option, char str1[])
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 
+/*reads text from file input.txt and returns an integer value for the most common letter based on table below:
+return value       0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25
+most common letter a b c d e f g h i j k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z
+the return value is then used in other functions, such as rotationCipherCalculator() to help generate ciphers, keys etc.
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 int mostCommonLetter()
 {
+	//declaration of pointer to file that text will be read from
 	FILE *input;
+	/*str stores the text as a string to be analysed. Initialised in as issues were occuring when the function was re-used with text
+	different lengths and array was only declared as char str[2000]*/
 	char str[2000] = {'0'};
+	/*n is used as a counter and condition in for loop at end of function, a holds the integer that is returned at the end of the 
+	function, count is used to store the highest letter count and end is used in the while loop rather than while(1) to stope Brentons
+	script from killing the code during execution*/
 	int n = 0, a, count = 0, end = 1;
+	//pointer to a value returned by stringCount() function, holds the number of letters each char is found in str.
 	int *strCount;
-	
+	//opens the file input.txt with read only privileges
 	input = fopen("input.txt", "r");
-		
+	//while loop repeats until the entire contents of input.txt are stored in str	
 	while(end != 0)
 	{
+		//takes a char from input and stores it in str[n], char read automatically increments after each iteration
 		str[n] = fgetc(input);
+		//when fgetc reaches end of input, if statement will be triggered, breaking out of the loop
 		if (str[n] == EOF)
 		{
 			end = 0;
 			break;
 		}
+		//triggers if a character is lower case, modifying it to it's upper case equivalent
 		else if (str[n] > 96 && str[n] < 123)
 			str[n] = str[n] - 32;
+		//increments n so that fgetc doesn't just store a char in the same memory location over and over
 		n++;
 	}
 	//printf("%s\n", str);
+	/*stringCount() counts the number of times each letter is found in the argument passed to it (see function for more) in this case
+	str and stores the location of those values in strCount*/
 	strCount = stringCount(str);
+	//moves through each value stored in strCount until the highest is found, which is then stored in a
 	for (n = 0; n<27; n++)
 	{
+		/*count holds the current highest number, if strCount[n] is greater than the if statement is triggered, causing count to take
+		on the value of strCount[n] and for a to take on the value of n (see table and accompanying information above for info)*/
 		if (strCount[n] > count)
 		{
+			
 			count = strCount[n];
 			a = n; //holds the value in the string that corresponds to the letter in the alpahbet
 			//i.e. a=0, b=1,... z=26
 	    }
 	}
 	//printf("a=%d\n", a);
+	//closes input.txt so that other functions trying to manipulate the files later don't run into issues
 	fclose(input);
+	/*returns the n value relating to highest location, e.g. if the most common letter was e, then a would equal 4. It was just as
+	simple to return this value as it was to return the actual ASCII char value, as functions can manipulate it later.
 	return a;
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 
+/*I wrote this when I still thought that I had to work with lower case letters, however it still works as it only returns a cipher
+and the lower case and upper case values are proportional to each other, meaning cipher calculation returns the same value whether 
+upper case or lower case characters are used*/
+/*rotationCipherCalculator() returns takes an argument option, which determines which fomula is used for cipher calculation, and a 
+which holds the integer returned from mostCommonLetter(). rotationCipherCalculator is intended for use in a loop that allows it to
+iterate through all 52 keys, however, the likelihood of it needing to do so is limited, as this would only need to ocurr if the most
+common letter in a piece of text was z.
+each case works for a different plainText letter, and it is a little difficult to explain my logic. Case0 assumes that the most
+most common letter in an encrypted piece of text will return an e when decrypted, and thus calculates the key accordingly. Case1
+then calculates a secondary version of this for when the most common letter in an encrypted piece of text is a, as the calculation 
+doesn't work when this scenario occurs. Each set of two cases repeats the same concept, assuming that the most common letter once
+decrypted will be e, followed by t, then r and so on and so forth, accounting for all possibilties. As mentioned above however this
+will only work if the first argument passed to the function is able to increment from 0 to 52 or until the loop breaks due to the 
+appropriate cipher being found, as exemplified in it's implementation in unRotDecrypt().
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 int rotationCipherCalculator(int option, int a)
 {
+	//stores the value that will be returned at the end of the function and used as a cipher in functions like rotationEncryption()
 	int cipher;
 	
 	switch (option)
 	{
+		//assumes most common decrypted letter will be e
 		case 0:
 			cipher = a + 97 - 101;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 1:
 			cipher  = 26 + 97 - 101;
 			break;
+		//assumes most common decrypted letter will be t
 		case 2:
 			cipher = a + 97 - 116;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 3:
 			cipher = 26 + 97 -116;
 			break;
+		//assumes most common decrypted letter will be r
 		case 4:
 			cipher = a + 97 -114;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 5:
 			cipher = 26 + 97 -114;
 			break;
+		//assumes most common decrypted letter will be I
 		case 6:
 			cipher = a + 97 - 105;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 7:
 			cipher = 26 + 97 - 105;
 			break;
+		//assumes most common decrypted letter will be o
 		case 8:
 			cipher = a + 97 - 111;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 9:
 			cipher = 26 + 97 - 111;
 			break;
+		//assumes most common decrypted letter will be n
 		case 10:
 			cipher = a + 97 - 110;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 11:
 			cipher = 26 + 97 -110;
 			break;
+		//assumes most common decrypted letter will be s
 		case 12:
 			cipher = a + 97 - 115;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter	
 		case 13:
 			cipher = 26 + 97 - 115;
 			break;
+		//assumes most common decrypted letter will be L
 		case 14:
 			cipher = a + 97 - 108;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 15:
-			cipher = 26 + 97 - 115;
-			break;
-		case 16:
-			cipher = a + 97 - 108;
-			break;
-		case 17:
 			cipher = 26 + 97 - 108;
 			break;
+		//assumes most common decrypted letter will be a
+		case 16:
+			cipher = a;
+			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
+		case 17:
+			cipher = 26;
+			break;
+		//assumes most common decrypted letter will be c
 		case 18:
 			cipher = a + 97 - 99;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 19:
 			cipher = 26 + 97 - 99;
 			break;
+			//assumes most common decrypted letter will be u
 		case 20:
 			cipher = a + 97 - 117;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 21:
 			cipher = 26 + 97 - 117;
 			break;
+		//assumes most common decrypted letter will be d
 		case 22:
 			cipher = a + 97 - 100;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 23:
 			cipher = 26 + 97 - 100;
 			break;
+		//assumes most common decrypted letter will be p
 		case 24:
 			cipher = a + 97 - 112;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 25:
 			cipher = 26 + 97 - 112;
 			break;
+		//assumes most common decrypted letter will be m
 		case 26:
 			cipher = a + 97 - 109;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 27:
 			cipher = 26 + 97 - 109;
 			break;
+		//assumes most common decrypted letter will be h
 		case 28:
 			cipher = a + 97 - 104;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 29:
 			cipher = 26 + 97 - 104;
 			break;
+		//assumes most common decrypted letter will be g
 		case 30:
 			cipher = a + 97 - 103;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 31:
 			cipher = 26 + 97 - 103;
 			break;
+		////assumes most common decrypted letter will be b
 		case 32:
 			cipher = a + 97 - 98;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 33:
 			cipher = 26 + 97 - 98;
 			break;
+		//assumes most common decrypted letter will be f
 		case 34:
 			cipher = a + 97 - 102;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 35:
 			cipher = 26 + 97 - 102;
 			break;
+		//assumes most common decrypted letter will be y
 		case 36:
 			cipher = a + 97 - 121;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 37:
 			cipher = 26 + 97 - 121;
 			break;
+		//assumes most common decrypted letter will be w
 		case 38:
 			cipher = a + 97 - 119;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 39:
 			cipher = 26 + 97 - 119;
 			break;
+		//assumes most common decrypted letter will be k
 		case 40:
 			cipher = a + 97 - 107;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 41:
 			cipher = 26 + 97 - 107;
 			break;
+		//assumes most common decrypted letter will be v
 		case 42:
 			cipher = a + 97 - 118;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 43:
 			cipher = 26 + 97 - 118;
 			break;
+		//assumes most common decrypted letter will be x
 		case 44:
 			cipher = a + 97 - 120;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 45:
 			cipher = 26 + 97 - 120;
 			break;
+		//assumes most common decrypted letter will be z
 		case 46:
 			cipher = a + 97 - 122;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 47:
 			cipher = 26 + 97 - 122;
 			break;
+		//assumes most common decrypted letter will be j
 		case 48:
 			cipher = a + 97 - 106;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 49:
 			cipher = 26 + 97 - 106;
 			break;
+		//assumes most common decrypted letter will be q
 		case 50:
 			cipher = a + 97 - 113;
 			break;
+		//same as above, but also assumes that most common encrypted letter will have a decimal value less than decrypted letter
 		case 51:
 			cipher = 26 + 97 - 113;
 			break;
