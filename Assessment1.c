@@ -1447,72 +1447,105 @@ void writeKey()
 
 	while (end != 0)
 	{
+		//loop will continue until key entered contains 26 characters, no duplicates and no invalid characters.
 		while (prelimEnd != 0)
 		{
+			//unless an error is found, loop will now break once it reaches the end.
 			prelimEnd = 0;
+			//for loop does nothing except count the number of values contained in keyHolder
 			for (n=0; keyHolder[n]!= 0; n++)
 				;
+			/*if the number of values counted above is less than 25(total of 26 values as n starts at 0), while loop will execute,
+			prompting the user to enter a new key until they enter more than 25 characters*/
 			while (n < 25)
 			{
 				printf("The key doesn't contain enough characters, please try again\n");
 				scanf("%s", keyHolder);
+					//counts characters as seen earlier in function
 					for (n=0; keyHolder[n]!= 0; n++)
 					;
+				//an error was found, so prelimEnd is set to 1 to repeat the testing process and ensure the key is correct
 				prelimEnd = 1;
 			}
-				
+			//sets the 27th value and beyond to NULL, anything written beyond this point will now be ignored	
 			for (n=26; keyHolder[26] != 0; n++)
 			{
 				keyHolder[n] = 0;
 			}
+			//for loop moves through each value of keyHolder as n is incremented
 			for (n=0; keyHolder[n] != 0; n++)
 			{
+				//if character is identified as lower case, 32 is subtracted to convert it to equivalent letter in upper case
 				if (keyHolder[n] > 96 && keyHolder[n] < 123)
 				{
 					keyHolder[n] = keyHolder[n] - 32;
 				}
+				/*if a character is found to fall outside the decimal range for the upper case and lower case alphabet, the user 
+				is notified and prompted to enter in the full key again. This process will repeat until their input doesn't contain
+				any invalid values, such as  '+' or '...'*/
 				else if (keyHolder[n] < 65 || (keyHolder[n] > 90 && keyHolder[n] < 97) || keyHolder[n] > 122)
 				{
 					printf("The key entered contains an invalid character, please enter the full key again.\n");
 					scanf("%s", keyHolder);
+					/*for loop will start again, as n = 0, this will allow for conversion of lower case to upper case and testing
+					of all characters to ocurr again*/
 					n = 0;
+					//prelim end is set to 1 to ensure that the entire loop is repeated again, ensuring the validity fo final key
 					prelimEnd = 1;
 				}
 			}
 			//printf("%d\n", duplicateChecker(keyHolder));
+			/*duplicateChecker() is called with the string keyHolder passed as an argument. This will check the string for any
+			duplicate values, such as two 'a' characters. If none are found then duplicateChecker() will return a value of 0*/
 			if (duplicateChecker(keyHolder) == 1)
 			{
+				//asks users to input full key again
 				printf("The key entered contains a duplicate, please enter the full key again.\n");
+				//users enter key via console
 				scanf("%s", keyHolder);
+				//prelimEnd = 1 will cause the while loop to repeat, ensuring the validity of the final key
 				prelimEnd = 1;
 			}
 		}
 		end = 0;
 	}
-	printf("\n%s\n", keyHolder);
+	//printf("\n%s\n", keyHolder); // used for testing
+	//for loop runs until the end of keyHolder is reached, writing each character in keyHolder to key (key.txt)
 	for (n = 0; keyHolder[n] != 0; n++)
 	{
 		fputc(keyHolder[n], key);
 	}
+	//closes file so that other functions don't experience issues trying to access it after this function is called
 	fclose(key);
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 
+/*function that checks a string against a select group of words, and if any of those words are found in the string returns an integer
+value of 1, else 0 is returned. Used during unknown rotation decryption, as it requires less words to be checked in order to identify
+whether or not a piece of text has been decrypted than substituion decryption.*/
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 //10 Most common words - https://simple.wikipedia.org/wiki/Most_common_words_in_English
 int wordChecker()
 {
+	//declaration of a pointer to the string returned by stringMakerOutput();
 	char * stringToBeChecked;
+	//int complete is used to identify whether or not a word has been found, n is used as a counter to cycle through all values in
+	//stringToBeChecked
 	int complete = 0, n;
+	//pointer allocated to the string returned by stringMakerOutput(), which is simply a string matching the text in output.txt
 	stringToBeChecked = stringMakerOutput();
-	
+	//for loop that progresses through stringToBeChecked 1 character at a time until the end of the string is reached
 	for (n = 0; stringToBeChecked[n] != 0; n++)
 	{
+		//compares characters of stringToBeChecked with characters making up common words. If they are found to match then complete
+		//is set to equal 1
 		if ((stringToBeChecked[n] == 'A' && stringToBeChecked[n+1] == 'N' && stringToBeChecked[n+2] == 'D') ||(stringToBeChecked[n] == 'T' && stringToBeChecked [n+1] == 'H' && stringToBeChecked[n+2] == 'E') || (stringToBeChecked[n] == ' ' && stringToBeChecked[n+1] == 'I' && stringToBeChecked[n+2] == 'T' && stringToBeChecked[n+3] == ' '))// && stringToBeChecked[n+1] == 'n' && stringToBeChecked[n+2] == 'd')
 		{
 			complete = 1;
 			break;
 		}
+		//used during the early stages of testing code, had an issue where extra full stops were being appended to the end of strings*/
+		//possibly redundant now but left in just in case
 		else if ((stringToBeChecked[n] == '.' && stringToBeChecked[n+1] == '.'))
 		{
 			printf("String ends");
@@ -1520,6 +1553,7 @@ int wordChecker()
 		}
 	}
 	//printf("String checked %s", stringToBeChecked);
+	//returns 1 if a matching word was found, else returns 0. Return value then used to identify whether or not decryption was successful
 	if (complete == 1)
 		return 1;
 	else 
@@ -1527,47 +1561,70 @@ int wordChecker()
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 
+/*function returns an integer if the the array passed to the function doesn't contain 26 characters. Message is also printed to the
+console identifying whether or not the issues is too many or too few characters. This function is used to determine whether a key read
+from a file is valid or not*/
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 int keyLengthCheck(char key[])
 {
+	//declaration of variable used to store the number of characters stored in the array that is passed to the function as an argument
 	int n;
-	
+	//for loop starts at the beginning of an array and keeps incrementing n until the end of the array is reached, thus counting the
+	//number of characters in the array
 	for (n = 0; key[n] != 0; n++)
 	{
 	}
-	printf("n = %d\n", n);
+	//printf("n = %d\n", n); //used for testing
+	//if key contains less than 26 characters, the function will return 1 and corresponding message will be printed
 	if (n<26)
 	{
 		printf("The key isn't long enough\n");
 		return 1;
 	}
+	//if key contains more than 26 characters, the function will return 2 and corresponding message will be printed
 	else if (n > 26)
 	{
 		printf("The key is too long\n");
-		return 1;
+		return 2;
 	}
+	//if the key contains 26 characters, the function will return 0 and nothing will be printed
 	else
 		return 0;
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 
+/*function used when text needs to be specified by user and written to input, such as when the user opts to enter text to encrypt or
+decrypt via the console. Function takes user input from the console and writes it to input.txt, where the text can then be read by
+other function*/
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 void plainTextWriter()
 {
+	//declaration and opening of file with write only privileges, into which the text will be written
 	FILE * plainText = fopen("input.txt", "w");
+	//declaration of inputText, which will store the string input by the user, and n which will act as a counter for for loop control 
 	char inputText[1000]; int n;
-	
+	//user is given instructions
 	printf("Please enter the plain text you would like to encrypt or decrypt: \n");
+	//reads a new line character, not strictly necessary in this instance but the scanf() below it has some interesting behaviours
+	//which can be mitigated by having scanf("\n") before it
 	scanf("\n");
+	//takes a string, including spaces, and stores it in inputText
 	scanf("%[^\n]s", inputText);
-	printf("The string you entered is %s\n", inputText);
-	
+	//printf("The string you entered is %s\n", inputText); //used for testing that the string entered by user match what is stored
+	/*for loop that steps through each character in array inputText, serving the dual purpose of converting any lower case characters
+	to upper case, then writing all characters to file input.txt*/
 	for (n = 0; inputText[n] != 0; n++)
 	{
+		//identifies if character is lower case, then substracts 32 to convert to equivalent upper case if required
+		if (inputText[n] > 65 && inputText[n] < 123)
+		{
+			inputText[n] = inputText[n] - 32;
+		}
+		//writes each character in inputText to input.txt one character at a time.
 		fputc(inputText[n], plainText);
 	}
 	//fprintf(plainText, "%s", inputText);
-	
+	//closes file so that other functions trying to access it won't experience any issues
 	fclose(plainText);
 	
 	return;
@@ -1651,27 +1708,50 @@ char * subAnalysis2()
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 
+/*function analyses a piece of encrypted text read from input.txt, then generates a key based on the frequency of decrypted letters
+occuring compared to the frequency of unencrypted letters.
+Unencrypted letters from most to least common are ordered : e t a o i u s h r d l c u m w f g y p b v k j x q z
+It is thus assumed that the most common letter in the encrypted text is e when decrypted, second most common is t when decrypted...
+through to z being the least common when decrypted. The key produced is then written to key.txt, after which it can be used by 
+substitutionDecryption() function, or manipulated by other functions, such as keyModifier().
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 int subAnalysis()
 {
+	//encryptedString will store the string being analysed, while key will store the key that is being produced
 	char encryptedString[10000], key[26];
+	//declaration and opening of files being used during function, input with read only permissions and output with write only
 	FILE *input = fopen("input.txt", "r");
 	FILE *output = fopen("key.txt", "w");
+	//pointer to integer, will be used to point to return value of stringCount()
 	int *strCount;
+	//a stores the value of n for which strCount > count (see below), n and counter are both used to help control for loops and count
+	//holds the value for the highest number of times a character occurs in a string as returned by stringCount()
 	int a, n, counter, count;
 	
+	//for loop intended to run until the end of input is reached, allowing each character of input.txt to be stored in encryptedString
 	for (n = 0; feof(input) == 0; n++)
 	{
+		//reads each character in input.txt, storing it in encryptedString[n] then moving forward after each iteration
 		fscanf(input, "%c", &encryptedString[n]);
+		//triggered when input reaches end of file, resulting in execution breaking out of for loop and moving on
 		if (encryptedString[n] == EOF)
 			break;
 		//printf("String Tested is %s\n", str);
 	}
-	
+	//stringCount(encryptedString) returns a pointer to an array containing a count for the number of time each character
+	//is found in encryptedString. strCount is then used as a pointer to these values.
 	strCount = stringCount(encryptedString);
+	
+	//for loop that repeats 26 times, each time finding the most frequent letter, storing it in key in order outlined above fuction
+	//that letter is then set to a frequency of -1 and the process repeats itself, finding the next most common letter until all 
+	//letters have been assigned a place in c.
 	for (counter = 0; counter <26; counter ++)
 	{
+		//count is zeroed out so that it doesn't carry it's value over from the last loop iteration
 		count = 0;
+		//for loop that compares the value stored in strCount[n] with the current highest value, stored in count. If strCount
+		//is greater it replaces the value in count, and a takes the value of n (which helps identify the letter later). This
+		//process then repeats itself until frequency of all 26 letters have been compared
 		for (n = 0; n<26; n++)
 		{
 			//static int count = 0;
@@ -1683,9 +1763,16 @@ int subAnalysis()
 				//i.e. a=0, b=1,... z=26
 			}
 		}
+		//Most frequent value is set to -1 so that it is essentially ignored during following iterations
 		strCount[a] = -1;
+		//switch based on counter allows key to be filled sequentially based on letter frequency outlined above
 		switch (counter)
 		{
+			//assuming the first most frequent letter in the encrypted text was 'R', a would have a value of 17. To create R 
+			//from 17, 65 is added to a, which equals 82, the ASCII decimal value for R, which would then be assigned to key[4]
+			//counter would then be incremented in the for loop, the second most common encrypted letter would then be assigned
+			//to key[19], counter incremented, third most common letter to key[0] etc. until all characters have been assigned.
+			//for full order see description above function
 			case 0:
 				key[4] = a + 65;
 				break;
@@ -1768,18 +1855,19 @@ int subAnalysis()
 				break;
 		}
 	}
-
+	//loop that writes each character in key to the file output points to, one at a time until all 26 characters are written
 	for (n = 0; n < 26; n++)
 	{
 		fputc(key[n], output);
 	}
+	//close the files used so that other functions that try to access them don't experience any issues
 	fclose(input);
 	fclose(output);
 }	
 /*----------------------------------------------------------------------------------------------------------------------------------*/
-
-/*----------------------------------------------------------------------------------------------------------------------------------*/
 //returns 0  if a letter in a string is found more than once, else returns 1
+/*----------------------------------------------------------------------------------------------------------------------------------*/
+
 int duplicateChecker(char * someString)
 {
 	int n = 0;
