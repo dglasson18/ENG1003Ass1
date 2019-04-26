@@ -513,7 +513,7 @@ void unRotDecrypt()
 		0 is returned and loop will continue to run*/
 		result = wordChecker();
 		//counter is incremented to ensure that cipher value changes after each iteration of loop. Also assists with flow control
-		counter++
+		counter++;
 	}	
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
@@ -560,17 +560,28 @@ encrypted/decrypted from input.txt and writes it to output.txt, while the cipher
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 void rotationEncryption(int cipher)
 {
+	/*declaration of files that are used in the function, names are kept the same as file names for clarity. The text being encrypted
+	is read from input, and once encrypted is written to output*/
 	FILE *input;
 	FILE *output;
+	//opens the file input.txt, with read only permissions
 	input = fopen("input.txt", "r");
+	//opens the file output.txt with write only permissions, this deletes anything already in the file
 	output = fopen("output.txt", "w");
+	//variable used to control the while loop below
 	int end = 0;
+	//stores a single character from input.txt at a time, which is then modified and written to output.txt
 	char str;
 	//printf("%d\n", cipher);
+	/*ensures that the loop continues to run until fgetc(input) reaches the end of the file, causing str to equal EOF, thus entering
+	the if statement, setting the end equal to 1 resulting in the end!=1 becoming false, thus ending the while loop*/
 	while (end != 1)
 	{
+		/*fgetc(input) retrieves a single char from input and stores it in str. With each iteration of the loop the char retrieved
+		will move forward one space, thus ensuring the same char isn't retrieved an infinite number of times*/
 		str = fgetc(input);
-		
+		/*if fgetc(input) is found to have reached the end of the file, then str will equal EOF, thus triggering the if statement,
+		setting end equal to 1 and breaking out of the loop*/
 		if(str == EOF)
 		{
 			end = 1;
@@ -578,83 +589,144 @@ void rotationEncryption(int cipher)
 		}
 		else
 		{
+			/*if statement is triggered if the char read from input is a lower case letter, as they fall between the ASCII decimal
+			range of 97 and 122(a = 97, z = 122). All other characters, such as spaces, apostrophes etc. are ignored*/
 			if (str > 96 && str < 123)
 			{
+				/*subtracting 32 from ASCII character in range above will return the same character but in upper case as required
+				in assessment specifications(a=97, A = 65)*/
 				str = str - 32;
 			}
+			/*if statement is triggered if the char str is an upper case letter, as the fall between ASCII decimal range of 65 to 90.
+			All other characters, such as spaces, apostrophes etc. are ignred and will be written to output without being modified*/
 			if (str > 64 && str  < 91)
 			{
+				//adding the cipher value to str results in the str value changing, so A + 3 = D i.e. 97 + 3 = 100
 				str = str + cipher;
+				/*if the resulting value is greater than 90 it will not return a letter of the alphabet, so 26 must be subtracted
+				so that the value will cycle back to the front of the alphabet. e.g. Z + 3 = ] i.e. 90 + 3 = 93. because the value
+				is greater than 90, 26 is subtracted, so the initial Z+3 becomes Z + 3 - 26 = C i.i. 90 + 3 - 26 = 67*/
 				if (str > 90)
 					str = str - 26;
+				/*same principal as if statement above, but in reverse, so that if cipher causes a number to go below 65, 26 will
+				be added to return it to the end of the alphabet. e.g. A - 3 = >, A - 3 + 26 = X*/
 				else if (str < 65)
 					str = str + 26;
 			}
 		}
+		/*writes the character stored in str to output. each iteration the written character is moved forward one place by the
+		function, otherwise only one character would ever be written to the file*/ 
 		fputc(str, output);
 	}
+	//input and output are closed to prevent any issues with opening and reading/writing from them when other functions are called
 	fclose(input);
 	fclose(output);
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 
+/*substitutionEncryption() is the function that performs the encryption of a piece of text read from input.txt using a key read from
+key.txt and writes the result to output.txt. User's are able to write to key.txt and input.txt using functions that can be called
+based on the argument that is given to substitutionEncryption() when it is called. The necessary files are only opened once user
+input has been taken, if required.*/
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 void substitutionEncryption(int option)
 {
+	/*char array key is used to store the key that will be used when encrypting the string after being read from key.txt, while str
+	stores a single character from input.txt at a time*/
 	char key[27], str;// = {'q','w','e','r','t','y','u','i','o','p','a','s','d','f','g','h','j','k','l','z','x','c','v','b','n','m','\0'};
+	/*declaration of the three files that are required for encryption. Input holds the text that will be encrypted, output is where
+	the encrypted text will be written to and key holds the key used to encrypt the text from input*/
 	FILE *input;
 	FILE *output;
 	FILE *keyText;
+	/*end is stores the value that is used to determine whether or not the various loops will continue to run*/
 	int end = 1;
 	
+	/*while loop will run until functions keyLengthCheck() and duplicateChecker() only return 0, which will result in end = 0, thus
+	causing the loop to exit*/
 	while (end != 0)
 	{
+		/*switch statement could have been used as well. Following if statements take the argument passed to the function when it
+		was initially called, and performs an action based on that function*/
+		/*option = 1 means the user opted to read text and key from a file, and therefore only keyCaseChange() is called*/
 		if (option == 1)
 		{
+			//function reads the contents of key.txt and converts any lower case letters to upper case
 			keyCaseChange();
 		}
+		/*option = 2 means the user opted to read text from file and key from stdin*/
 		else if (option == 2)
 		{
+			/*writeKey() enables user to reads key from console and stores it in key.txt, where it can then be manipulated by other
+			functions. Key caseChance() is not required as writeKey() checks user input to ensure it contains no capitals before
+			writing it to key.txt*/
 			writeKey();
 		}
+		/*option = 3 means the user opted to read key from key.txt and the text to be encrypted from console*/ 
 		else if (option == 3)
 		{
+			/*calling plainTextWriter() prompts the user to enter the text that they would like to encrypt/decrypt. It then stores
+			the result in input.txt which can then be read by substitutionEncryption() later in the function*/
 			plainTextWriter();
+			//function reads the contents of key.txt and converts any lower case letters to upper case
 			keyCaseChange();
 		}
+		/*option 4 means the user opted to read key and text from console*/
 		else if (option == 4)
 		{
+			/*calling plainTextWriter() prompts the user to enter the text that they would like to encrypt/decrypt. It then stores
+			the result in input.txt which can then be read by substitutionEncryption() later in the function*/
 			plainTextWriter();
+			/*writeKey() enables user to reads key from console and stores it in key.txt, where it can then be manipulated by other
+			functions. Key caseChance() is not required as writeKey() checks user input to ensure it contains no capitals before
+			writing it to key.txt*/
 			writeKey();
 		}
-		
+		/*opens the file key.txt with read only privileges*/
 		keyText = fopen("key.txt", "r");
+		/*fscanf() reads from keyText and stores the string in key. %s was only used as there are no spaces in key that generally
+		seem to cause havoc when reading strings*/
 		fscanf(keyText, "%s", key);
+		/*keyLengCheck takes the key as an argument and returns 0 if it has 26 characters, while duplicateChecker() takes key as 
+		an argument and returns 0 if it only contains one of each character, else both functions will return 1*/
 		end = keyLengthCheck(key) + duplicateChecker(key);
-
+		fclose(keyText);
+		/*if an issue was found with key, if statement will be triggered prompting the user to re-enter the key via the console.
+		The writeKey() function won't exit until a valid key is entered, which will then be written to key.txt.*/
 		if (end != 0)
 		{
 			printf("There is something wrong with the key, please enter a new key\n");
 			writeKey();
 		}
 	}
+	//prints the key being used to console
 	printf("The key being used is %s\n", key);
+	//opens input.txt with read only permissions and output.txt with write only permissions
 	input = fopen("input.txt", "r");
 	output = fopen("output.txt", "w");
-	
+	//end is set back to 1 to ensure that the loop will initially run
+	end = 1;
 	while(end != 0)
 	{
+		//reads a character from input and stores it in str, each iteration of loop moves on to the next character input
 		str = fgetc(input);
-		
+		//once fgetc reaches end of file, if statement will trigger and will break out of loop
 		if (str == EOF)
 		{
 			end = 0;
 			break;
 		}
-		else if (str > 65 && str < 123)
+		//identifies if str is lower case, and subtracts 32 to set str to the same letter, but upper case as per assessment spec. 
+		else if (str > 96 && str < 123)
 		{
 			str = str - 32;
 		}
+		/*this switch controls the encryption of each character. It takes str and looks at it's decimal value, then assigns str
+		a value from the key array based on what the value is.
+		Key memory location 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25
+		input value         a b c d e f g h i j k  l  m  n  o  p  q  r  s  t  u  v  w  x  y  z
+		In other words if str = a, it will be assigned the value of the char stored in key[0], k = key[10] and so on until the 
+		end of the string is reached. Any value that is not a part of the alphabet is left unmodified*/
 		switch (str)
 		{
 			case 65:
@@ -742,63 +814,107 @@ void substitutionEncryption(int option)
 				break;
 				str = str;
 		}
+		//stores the modified value of str in output (writes it to ouput.txt), moving forward after each iteration
 		fputc(str, output);	
 	}
+	//close the files used to prevent any conflict if other functions need to manipulate them in any way
 	fclose(input);
 	fclose(output);
 	fclose(keyText);
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 
+/*substitutionDecryption() is the function that performs the decryption of a piece of text, reading the text to be decrypted from
+input.txt, the key to be used from key.txt and writing the resulting text from decryption to output.txt. An integer is taken as an
+argument to control different variations of the function, such as allowing the user to enter the key via console, and a char array
+can also be passed as an argument and decrypted based on which option is chosen. At the time of writing this a full char array is
+only passed to the function during the proces of decrypting an unknown piece of text encrypted with a substitution cipher*/
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 void substitutionDecryption(int option, char str1[])
 {
+	//char arrays key and atr are used to store the key used to decrypt the text and the string being decrypted respectively
 	char key[27], str[10000]; //= {'q','w','e','r','t','y','u','i','o','p','a','s','d','f','g','h','j','k','l','z','x','c','v','b','n','m','\0'};
+	//declaration of file pointers used, input will point to input.txt, output to output.txt and keyText to keyText.txt
 	FILE *input;
 	FILE *output;
 	FILE *keyText;
+	/*integers n and k are used incrementing values during for loops, while end holds the value that determines whether or not the
+	while loop continues to run*/
 	int n = 0, k = 0, end = 1;
-	
+	/*switch statement could have been used as well. Following if statements take the integer argument passed to the function when it
+	was initially called, and performs an action based on that integer*/
+	/*option = 1 means the user opted to read text and key from a file, and therefore only keyCaseChange() is called*/
 	if (option == 1)
 	{
+		//function reads the contents of key.txt and converts any lower case letters to upper case		
 		keyCaseChange();
 	}
+	/*option = 2 means the user opted to read text from file and key from stdin*/
 	else if (option == 2)
 	{
+		/*writeKey() enables user to reads key from console and stores it in key.txt, where it can then be manipulated by other
+		functions. Key caseChance() is not required as writeKey() checks user input to ensure it contains no capitals before
+		writing it to key.txt*/
 		writeKey();
 	}
+	/*option = 3 means the user opted to read key from key.txt and the text to be encrypted from console*/ 
 	else if (option == 3)
 	{
+		/*calling plainTextWriter() prompts the user to enter the text that they would like to encrypt/decrypt. It then stores
+		the result in input.txt which can then be read by substitutionEncryption() later in the function*/
 		plainTextWriter();
+		//function reads the contents of key.txt and converts any lower case letters to upper case
+		keyCaseChange();
 	}
+	/*option 4 means the user opted to read key and text from console*/
 	else if (option == 4)
 	{
+		/*calling plainTextWriter() prompts the user to enter the text that they would like to encrypt/decrypt. It then stores
+		the result in input.txt which can then be read by substitutionEncryption() later in the function*/
 		plainTextWriter();
+		/*writeKey() enables user to reads key from console and stores it in key.txt, where it can then be manipulated by other
+		functions. Key caseChance() is not required as writeKey() checks user input to ensure it contains no capitals before
+		writing it to key.txt*/
 		writeKey();
-	}		
+	}
+	//should only occur when performing decryption of text with unknown key
 	else
 	{
+		//for loop takes value stored in str1[n] and stores that value in key[n] until the end of str1[n] is reached
+		//This was done to troubleshoot issues that were ocurring as a result of manipulating str1 during decryption
 		for (n = 0; str1[n] != 0; n++)
 		{
 			key[n] = str1[n];
 		}
 	}
+	/*Opens appropriate files with write, read and read privileges as required*/
+	output = fopen("output.txt", "w");
 	input = fopen("input.txt", "r");
 	keyText = fopen("key.txt", "r");
+	/*fscanf() reads from keyText and stores the string in key. %s was only used as there are no spaces in key that generally
+	seem to cause havoc when reading strings*/
 	fscanf(keyText, "%s", key);
-	output = fopen("output.txt", "w");
+	
+	//sets n back to 0 so that assignment of str[n] begins at the first memory location
 	n = 0;
 	//char *u = "u2026";
+	/*for loop would have been appropriate, but the code was already written with a while loop before it came to be like this
+	so it was just left as is and n++ was added at the bottom to ensure values were stored in str correctly*/
+	//will continue loop until the end of input is reached, end = 0 and break; ensure that one way or another the loop stops
 	while(end != 0)
 	{
+		//reads a character from input and stores it in str, each iteration of loop moves on to the next character input
 		str[n] = fgetc(input);
+		//once fgetc reaches end of file, if statement will trigger and will break out of loop
 		if (str[n] == EOF)
 		{
 			end = 0;
 			break;
 		}
+		//identifies if str is lower case, and subtracts 32 to set str to the same letter, but upper case as per assessment spec.
 		else if (str[n] > 96 && str[n] < 123)
 			str[n] = str[n] - 32;
+		//tyring to figure out how to work with ellipsis in the unknown key substitution string
 		/*else if (str[n] == 85)
 		{
 			str[n] = 46;
@@ -806,11 +922,17 @@ void substitutionDecryption(int option, char str1[])
 			str[n] = 46;
 			n++;
 			str[n] = 46;
-		}*/			
+		}*/	
+		//n is incremented so that the next character read from input will be stored in the next location in str
 		n++;
 	}
+	/* for loop controls the implementation of decryption one character at a time. Once one character is decrypted as outlined below,
+	n is incremented and the next value stored in str is decrypted until the end of str is reached*/
 	for (n = 0; str[n] != 0; n++)
 	{
+		/*for loop cycles through all of the characters in key until one matching the current character in str is found. Once a
+		match is found, the if statement will assign the current value of str to k + 65, as this will match the decrypted value
+		of the character.*/
 		for (k=0; key[k] != 0; k++)
 		{
 			if (str[n] == key[k])
@@ -819,9 +941,10 @@ void substitutionDecryption(int option, char str1[])
 				break;
 			}		
 		}
-		fputc(str[n], output);
+		/*once str[n] has been assigned it's decrypted value, it is written to output
+		fputc(str[n], output);*/
 	}
-	
+	//close the files used to prevent any conflict if other functions need to manipulate them in any way
 	fclose(input);
 	fclose(output);
 	fclose(keyText);
