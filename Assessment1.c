@@ -1009,7 +1009,7 @@ int mostCommonLetter()
 	//closes input.txt so that other functions trying to manipulate the files later don't run into issues
 	fclose(input);
 	/*returns the n value relating to highest location, e.g. if the most common letter was e, then a would equal 4. It was just as
-	simple to return this value as it was to return the actual ASCII char value, as functions can manipulate it later.
+	simple to return this value as it was to return the actual ASCII char value, as functions can manipulate it later.*/
 	return a;
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
@@ -1865,37 +1865,55 @@ int subAnalysis()
 	fclose(output);
 }	
 /*----------------------------------------------------------------------------------------------------------------------------------*/
-//returns 0  if a letter in a string is found more than once, else returns 1
-/*----------------------------------------------------------------------------------------------------------------------------------*/
 
+/*returns 1 if a letter in a string is found more than once, else returns 0. the string being checked is passed as an argument of
+function*/
+/*----------------------------------------------------------------------------------------------------------------------------------*/
 int duplicateChecker(char * someString)
 {
+	//declaration of n used as a varialbe to assist in for loop control
 	int n = 0;
+	//declaration of pointer used when referencing a value required to be accessed from the return of stringCount()
 	int *strCount;
-	
+	/*stringCount(someString) returns the frequency of letters in an char array passed to the function as an argument, in this instance
+	someString. The return takes the form of an array of integers. These individual values are accessed using strCount*/
 	strCount = stringCount(someString);
-
+	//for loop cycles through all of the values returned by stringCount(someString).
 	for (n = 0; n<=25; n++)
 	{
+		//If any value strCount[n] is greater than 1, it means that a character appeared more than once. This triggers
+		//the if statement causing the function to return a value of 1.
 		if (strCount[n] > 1)
 			return 1;
 	}
+	//for all 26 values that can be accessed with strCount, if none are greater than 1 then the function returns 0, thus communicating
+	//that the string tested doesn't contain any duplicate alphabetical values
 	return 0;
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 
+/*function that passes a char array as an argument, counts the number of times each value appears within that array and then returns 
+those values as a pointer to an integer array.
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 int *stringCount(char str[])
 {
+	//declaration of array used to store how many times each value appears within the char array.
+	//result will be formatted such that the number of A ocurrences will be stored in strCount[0], number of B ocurrences will be 
+	//stored in strCount[1], ..., number of Z ocurrences will be stored in strCount[25]
 	static int strCount[26];
+	//declaration of integer variable used to assist with for loop control.
 	int n;
 	
+	//for loop zeros out each value in the array, just in case the memory locations were previously occupied by non-zero stuff
 	for (n = 0; n < 26; n ++)
 	{
 		strCount[n] = 0;
 	}
+	//for loop steps through each character in the array until the end of the array is reached.
 	for (n = 0; str[n] != 0; n++)
 	{
+		//switch statement determines which location in strCount is incremented based on str[n]. e.g. if str[n] == 'D' then 
+		//strCount[3]++
 		switch (str[n])
 		{
 			case 65:
@@ -1980,40 +1998,61 @@ int *stringCount(char str[])
 				break;
 		}
 	}
+	//once for loop ends, the final count is returned from the function.
 	return strCount;
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
-
+/*generates a semi random number and returns it as an integer. min and max are passed to the function as integers and determine the 
+minimum and maximum values that the function will be able to return*/
 /*----------------------------------------------------------------------------------------------------------------------------------*/	
 int randomNumber(int min, int max)
 {
 	//https://www.google.com/search?q=randomly+generate+numbers+between+two+values+in+c&oq=randomly+generate+numbers+between+two+values+in+c&aqs=chrome..69i57j0l5.18546j0j4&sourceid=chrome&ie=UTF-8#kpvalbx=1
-	int d, r, x;
+	/*declaration of integers used in function - d will store the range between the maximum and the minimum values that are to be 
+	produced, x stores the result of rand()%d which is then used to calculate the 
+	final value that is returned (x + min)*/
+	int d, x;
 	
+	//calculates range between arguments passed to function and stores them in d
 	d = max - min;
-	r = rand();
-	x = r % d;
+	//calculates a 'psuedo random' number with a maximum value equivalent to the range calculated above and stores it in x
+	x = rand() % d;
+	/*returns the result of adding x and the minimum value passed to the function, thus producing a random number that will always 
+	between the max and min arguments passed to the function*/
 	return (x + min);
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
-
+/*function returns a string that randomly swaps two letters in that string. Used to generate variations of a key for unknown 
+subsitution decryption. The int option passed to the function determines whether or not the string modifed is read from the file 
+key.txt, or from the string that is passed to the function as an argument. If a string is passed to the function as an argument, only
+the first 26 characters will be modified.*/
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 char * keyModifier(int option, char str[])
 {
-	int b = randomNumber(0, 25),n;
-	printf("%d\n", b);
-	int c = randomNumber(0, 25);
-	printf("%d\n", c);
+	/*declaration of integer varialbe used in function - b and c store random numbers between 0 and 25 which reference the two 
+	positions in keyHolder[] that will be swapped. n is used as a counter to help control for loop*/
+	int b = randomNumber(0, 25), c = randomNumber(0, 25), n;
+	//printf("%d\n", b); // used for testing
+	//printf("%d\n", c); //used for testing 
+	/*declaration of static char array that will hold the key to be modified - declared static so that it can be returned at end of
+	function*/
 	static char keyHolder[26];
-	FILE *key = fopen("key.txt", "r");
+	//declaration of char variable d used to hold one of the char's as the values are swapped
 	char d;
 	
+	/*if statement that takes the argument option and uses it to determine whether or not keyHolder will be read from file or function
+	argument*/
 	if (option == 1)
 	{
+		//declaration of file pointer and opening of file key.txt with read only privileges
+		FILE *key = fopen("key.txt", "r");
+		//for loop assists in storing the contents of key.txt, incrementing n after each iteration
 		for (n = 0; n<27 ; n++)
 		{
-			//fscanf(key, "%c", &keyHolder[n]);
+			//fscanf(key, "%c", &keyHolder[n]); //alternative option
+			//fgetc() reads char from file and stores it in keyHolder[n], then moves on to next char with each iteration
 			keyHolder[n] = fgetc(key);
+			//when fgetc() reaches end of file, if statement is triggered, breaking out of the for loop.
 			if (keyHolder[n] == EOF)
 			{
 				keyHolder[n] = 0;
@@ -2021,46 +2060,71 @@ char * keyModifier(int option, char str[])
 			}
 			//printf("String Tested is %s\n", str);
 		}
+		//closes the file so that other functions are able to access it without experiencing any issues
+		fclose(key);
 	}
+	/*initiates a for loop that stores the contents of array passed to the function as an argument in the equivalent position in
+	keyHolder, making the manipulation and return of the values somewhat simpler*/
 	else 
 	{
+		//for loop runs until the end of str is reached, with the value from str[n] stored in keyHolder[n]
 		for(n = 0; str[n] != 0; n++)
 		{
 			keyHolder[n] = str[n];
 		}
 	}
 	//printf("original key %sis\n", keyHolder);
-	
+	//stores the value of keyHolder[b] so that it isn't lost when that location is overwritten
 	d = keyHolder[b];
+	//overwrites the value in keyHolder[b] with the value in keyHolder[c]
 	keyHolder[b] = keyHolder[c];
+	//overWrites the value in keyHolder[c] with the value stored in d, which was originally stored in keyHolder[b]
 	keyHolder[c] = d;
-	fclose(key);
-	//printf("%s\n", keyHolder);
+	
+	//printf("%s\n", keyHolder); //used for testing
+	//returns the modified key as a pointer to the array keyHolder
 	return keyHolder;
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
-
+/*function reads the contents of key.txt. If any lower case letters are present, they are converted to upper case and the key is 
+rewritten to key.txt*/
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 void keyCaseChange()
 {
+	//declaration or pointer and opening of file with read only privileges
 	FILE *key = fopen("key.txt", "r");
+	//declaration of char array that will be used to store the key read from key.txt
 	char keyHolder[27];
-	int n;
-	
+	/*declration of n used to control for statement and lowerPresent, which is used to identify whether or not any lower case letters
+	were found and thus whether or not key.txt needs to be rewritten*/
+	int n, lowerPresent = 0;
+	//reads key from key.txt and stores it in keyHolder. Can be done in this manner as there should be no spaces in key.txt
 	fscanf(key, "%s", keyHolder);
+	//for loop will run until the end of keyHolder string is reached
 	for (n = 0; keyHolder[n] != 0; n++)
 	{
+		//if iteration of loop is found to have reached end of file, if statement will trigger and loop will exit
 		if (keyHolder[n] == EOF)
 			break;
+		//identifies whether or not current char is lowercase and converts it to upper case if it is.
 		else if (keyHolder[n] < 123 && keyHolder[n] > 96)
 		{
 			keyHolder[n] = keyHolder[n] - 32;
+			//value is changed to 1, which will trigger if statement later in the function forcing key.txt to be re-written
+			lowerPresent = 1;
 		}
 	}
+	//closes files so that it can be re-opened with different privileges and not cause any conflicts
 	fclose(key);
-	//printf("Key was changed to \n%s\n",keyHolder);
-	
-	FILE *keyWrite = fopen("key.txt", "w");
-	fprintf(keyWrite, "%s", keyHolder);
-	fclose(keyWrite);
+	//printf("Key was changed to \n%s\n",keyHolder); //used for testing
+	//triggered if a lower case character was found in the previous for loop,
+	if (lowerPresent == 1)
+	{
+		//opens files with appropriate permissions to rewrite the key stored in key.txt. Old key will be overwritten
+		FILE *keyWrite = fopen("key.txt", "w");
+		//writes the contents to key.txt as a string (only works as there are no spaces in keyHolder)
+		fprintf(keyWrite, "%s", keyHolder);
+		//closes file to prevent any issues when other functions try to access it later
+		fclose(keyWrite);
+	}
 }
