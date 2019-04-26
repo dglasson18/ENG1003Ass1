@@ -1247,32 +1247,43 @@ int rotationCipherCalculator(int option, int a)
 		default:
 			break;
 	}
+	//returns the integer cipher so that it may be used in other functions or stored in other variables
 	return cipher;
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 
+/*function reads the contents out output.txt and returns it as a string. Helpful for printing the result of encryption/decryption
+at the end of a function*/
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 char *stringMakerOutput()
 {
+	//decaration of pointer to file that will be used as input, in this instance output.txt will be used
 	FILE *input;
+	//static char stores the string that is being read to the file
 	static char str[1000];
+	//n is used as a counter for control of for loops and assisting in ensuring that str is written to properly
 	int n;
-	
+	//opens the file being used for input with read only permissions
 	input = fopen("output.txt", "r");	
-	
+	//for loop that zeros every value in str, as it is static and would retain values from the previous time it was recalled otherwise
 	for (n = 0; n < 999; n++)
 	{
 		str[n] = 0;
 	}	
+	//for loop intended to scan a character at a time from input and store it in str[n].
 	for (n = 0; feof(input) == 0; n++)
 	{
+		//fscanf was used instead of fgetc to experiment and see whether there are any functional differences. fgetc could also be used
 		fscanf(input, "%c", &str[n]);
+		//if fscanf reaches the end of input, then if statement will be triggered and will break out of for loop
 		if (str[n] == EOF)
 			break;
 		//printf("String Tested is %s\n", str);
 	}
 	//printf("String Tested is %s\n", str);
+	//closes the file so that other functions can manipulate it without experiencing any issues
 	fclose(input);
+	//returns the string created from reading the file
 	return str;
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
@@ -1280,7 +1291,11 @@ char *stringMakerOutput()
 /*Function returns score relating to the suitability of a decrypted piece of text by opening two files, one containing 10000 of the 
  most common words, the other cotaining text that has just been decrypted using the decryption function above, both as read only. 
  These pieces of text are then stored in char arrays words1[100000] and str[10000] respectively. The arrays are then compared in 
- sections of up to 4 characters, with values added to the score accordingly*/
+ sections of up to 4 characters, with values added to the score accordingly
+ This is used in the decryption of unknown substitution decryption, as multiple keys are generated. Each key is used to decrypt the 
+ text and subWordComparison is then used to determine the 'suitability' or the likelihood that the text has been decrypted properly.
+ The higher the score the closer the text should be to decryption, so the score of 1 key is compared with the score of another and 
+ the key that produced the highest score will ultimately be kept*/
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 int subWordComparison()
 {
@@ -1292,102 +1307,144 @@ int subWordComparison()
 	//declaration of n and k, used as counters later in function, and score which is returned at end of function
 	int n, k, score = 0;
 
-	
+	//for loop runs until the end of the file decryptedString (output.txt) is reached, storing a character in str on each iteration
 	for (n = 0; feof(decryptedString) == 0; n++)
 	{
 		fscanf(decryptedString, "%c", &str[n]);
 		if (str[n] == EOF)
 			break;
 	}
+	//for loop runs until the end of the file wordlist10000.txt is reached, after which the loop breaks
 	for (n = 0; n < 999998; n++)
 	{
+		//reads a characeter from output.txt and stroes it in words1[n]
 		fscanf(wordsForComparison1, "%c", &words1[n]);
+		//when the end of the file is reached, if statement initiates and breaks out of loop
 		if (words1[n] == EOF)
 		{
 			break;
 		}
+		/*identifies if a character is lowercase and converts it to it's uppecase equivalent, if this loop was not put in place
+		then the final score returned at the end of the function would have a higher possibility of being inaccurate*/
 		else if(words1[n] > 95 && words1[n] < 123)
 			words1[n] = words1[n] - 32;
 	}
+	//multi layer for loop that moves through str character by character
 	for (n = 0; str[n] != 0; n++)
 	{
+		/*for loop checks whether a combination of four, three or two characters from str match any four, three or two characters from 
+		words1, then adds to score based on how many character match. Once the entirety of words1 is tested, this for loop exits, n is
+		incremented and the process repeats itself until the end of str is reached.
+		I don't think this is a very good way of implementing this, but I couldn't think of a better one.*/
 		for (k = 0; words1[k] != 0; k++)
 		{
+			//4 is added to score if 4 characters from str match four characters from words1
 			if ((str[n] == words1[k]) && (str[n+1] == words1[k+1]) && (str[n+2] == words1[k+2]) && (str[n+3] == words1[k+3]))
 			{
 				score += 4;
 			}
+			//3 is added to score if 3 characters from str match three characters from wrods1
 			else if (str[n] == words1[k] && str[n+1] == words1[k+1] && str[n+2] == words1[k+2])
 			{
 				score += 3;
 			}
+			//2 is added to score if 2 characters from str match two characters from words1
 			else if (str[n] == words1[k] && str[n+1] == words1[k+1])
 			{
 				score += 2;
 			}
 		}
 	}
-	printf("%d\n", score);
+	//printf("%d\n", score);
+	//files used are closed so that they may be manipulated by other functions without experiencing any issues
 	fclose(wordsForComparison1);
 	fclose(decryptedString);
+	//the final score is returned
 	return score;
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/	
-
+/*function reads an integer from the file cipher.txt and returns it as an integer. This can then be passed as an argument to the 
+rotation and decryption functions*/
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 int readCipher()
 {
+	//Pointer to file used for input declared
 	FILE *input;
+	//int cipher declared, will store the value of the integer read from cipher.txt
 	int cipher;
-	
+	//opens the file cipher.txt with read only permissions
 	input = fopen("cipher.txt", "r");
+	//reads an integer from the file and stores it in variable cipher
 	fscanf(input, "%d", &cipher);
 	cipher = cipher;
+	//close file so that other functions can access it without experiencing any issues
 	fclose(input);
-	printf("Cipher used is %d\n", cipher);
+	//printf("Cipher used is %d\n", cipher);//used for testing purposes to ensure that the function is reading the write value
+	//returns the variable cipher as an integer so that it may then be passed to other functions as an argument
 	return cipher;
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
-
+/*allows the user to enter a cipher into the console. This cipher is then returned as an int which can be passed to other functions
+like rotationEncryption(). It can also be used to create a new cipher in the event that a cipher check identifies that the cipher
+being used in a function has an invalid value, such as 'a' or '-50000546540316'. Takes an argument option that determines what is
+printed to the console and whether the cipher is modified before being returned at end of function.*/
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 int writeCipher(int option)
 {
+	//declaration of integer variable used to store the cipher entered by user from console and returned at end of function
 	int cipher;
-	
+	//option==1 ocurrs when user is entering a cipher for encryption. The printf() statement reflects this
 	if (option == 1)
 	{
 		printf("Please enter the value for the cipher, between 1 and 26 (If you want to you can go between -26 and 26 and everything should still work)\n");
 	}
+	//occurs when user is entering a cipher for decryption. The printf statement reflects this as well
 	else
 	{
 		printf("Please enter the value of the cipher that was used to encrypt the text originally (between -26 and 26)\n");
 	}
+	//irrespective of argument, cipher is taken using scanf(), modification may be done later based on value stored in option
 	scanf("%d", &cipher);
-	
+	/*while loop tests whether or not the cipher falls within the valid range of -26 to 26, and asks the user to input the value again
+	if it does not fall within that range. It will then repeat itself until the user enters a value that is valid*/
 	while (cipher < -26 || cipher > 26)
 	{
 		printf("\nThe value that you've entered is invalid, please try again: ");
 		scanf("%d", &cipher);
 	}
-	
+	//when the cipher is entered for decryption, it's sign is reversed so that rotationEncryption() applies the opposite to what the 
+	//text was originally encrypted with
 	if (option != 1)
 	{
 		cipher = cipher * -1;
 	}
-	
+	//returns the final value stored in cipher as an integer
 	return cipher;
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 
+/*function allows a usr to enter a key into the console, after which it will then be written to key.txt rather than being returned as
+an array. I took a different approach to writeKey then I did to writeCipher as I wanted to experiment with different ways of 
+completing a similar objective. I also found that reading a string from a file was simpler then working with pointers and such as
+would have to be done if this function was to return keyHolder rather than write it to key.txt*/
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 void writeKey()
 {
+	/*char array used to hold the values for the key that will be entered via the console. Only contains alphabet so doesn't need to
+	be large.*/
 	char keyHolder[27];
+	/*declation and opening of file key.txt with write permissions. This will overwite the file so be careful a key that needs to be
+	used again is stored in the file prior to calling this function*/
 	FILE *key = fopen("key.txt", "w");
+	/*n is used as a counter, while end is used in the while statement so that Brentons script won't kill the code while executing as
+	it did with while(1), prelimEnd is used for control of the secondary while statement*/
 	int n, end = 1, prelimEnd = 1;
-	
+	//printf prints directions for user to the screen
 	printf("Please enter the key to be used to encrypt decrypt the text in upper case with no space followed by pressing the enter key, for example: QWERTYUIOPASDFGHJKLZXCVBNM\n");
+	/*scanf takes user input from console and stores it in keyHolder. it is fine to user to take input in this instance as the key
+	string should not contain any spaces*/
 	scanf("%s", keyHolder);
+
 	while (end != 0)
 	{
 		while (prelimEnd != 0)
