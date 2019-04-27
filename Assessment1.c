@@ -48,6 +48,8 @@ void menu3();
 void menu4();
 char getChar();
 int getNumber();
+char *lightSubDecryption(char input[], char str1[]);
+char *stringMakerInput();
 
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 int main()
@@ -524,24 +526,29 @@ void unSubDecrypt()
 {
 	int score;
 	int counter;
+	char input[1000];
+	stringMakerInput(input);
+	printf("%s\n", input);
 	subAnalysis();
 	substitutionDecryption(1, "");
-	score = subWordComparison();
+	score = subWordComparison(1, input);
 	char *str1 = subAnalysis2();
-	substitutionDecryption(0, str1);
-	if (score < subWordComparison())
+	printf("\n%s\n", str1);
+	lightSubDecryption(input, str1);
+	printf("The decrypted string is '%s'\n", input);
+	if (score < subWordComparison(0,input))
 	{
 		FILE *key = fopen("key.txt", "w");
-		fprintf(key,"%s", str1);
+		//fprintf(key,"%s", str1);
 		fclose(key);
 	}
 	printf("str1 = %s\n", str1);
 	for (int n = 0; n < 1000; n++)
 	{
 		char * str = keyModifier(0, str1);
-		printf("str = %s\n", str);
-		substitutionDecryption(0, str);
-		int newScore = subWordComparison();
+		//printf("str = %s\n", str);
+		lightSubDecryption(input, str);
+		int newScore = subWordComparison(0,input);
 		
 		if (newScore > score)
 		{
@@ -549,10 +556,10 @@ void unSubDecrypt()
 			for (int k=0; str[k] != 0; k++)
 			{
 				str1[k] = str[k];
-			}
+			}/*
 			FILE *key = fopen("key.txt", "w");
 			fprintf(key, "%s", str1);
-			fclose(key);
+			fclose(key);*/
 			printf("str1 = %s\n", str1);
 			n = 0;
 		}
@@ -830,6 +837,34 @@ void substitutionEncryption(int option)
 	fclose(input);
 	fclose(output);
 	fclose(keyText);
+}
+/*----------------------------------------------------------------------------------------------------------------------------------*/
+
+/*----------------------------------------------------------------------------------------------------------------------------------*/
+char * lightSubDecryption(char input[], char str1[])
+{
+	int n, k;
+	//printf("%s\n", str);
+	/* for loop controls the implementation of decryption one character at a time. Once one character is decrypted as outlined below,
+	n is incremented and the next value stored in str is decrypted until the end of str is reached*/
+	//printf("Testing input light sub %s\n", input);
+	//printf("Testing key in light sub %s\n", str1);
+	for (n = 0; input[n] != 0; n++)
+	{
+		/*for loop cycles through all of the characters in key until one matching the current character in str is found. Once a
+		match is found, the if statement will assign the current value of str to k + 65, as this will match the decrypted value
+		of the character.*/
+		for (k=0; str1[k] != 0; k++)
+		{
+			if (input[n] == str1[k])
+			{
+				input[n] = k + 65;
+				break;
+			}		
+		}
+		/*once str[n] has been assigned it's decrypted value, it is written to output*/
+	}
+	return input;
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -1301,6 +1336,36 @@ char *stringMakerOutput()
 	return str;
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
+char *stringMakerInput(char input[])
+{
+	//decaration of pointer to file that will be used as input, in this instance output.txt will be used
+	FILE *input1;
+	//n is used as a counter for control of for loops and assisting in ensuring that str is written to properly
+	int n;
+	//opens the file being used for input with read only permissions
+	input1 = fopen("input.txt", "r");	
+	//for loop that zeros every value in str, as it is static and would retain values from the previous time it was recalled otherwise
+	for (n = 0; n < 999; n++)
+	{
+		input[n] = 0;
+	}	
+	//for loop intended to scan a character at a time from input and store it in str[n].
+	for (n = 0; feof(input1) == 0; n++)
+	{
+		//fscanf was used instead of fgetc to experiment and see whether there are any functional differences. fgetc could also be used
+		fscanf(input1, "%c", &input[n]);
+		//if fscanf reaches the end of input, then if statement will be triggered and will break out of for loop
+		if (input[n] == EOF)
+			break;
+		//printf("String Tested is %s\n", str);
+	}
+	//printf("String Tested is %s\n", str);
+	//closes the file so that other functions can manipulate it without experiencing any issues
+	fclose(input1);
+	//returns the string created from reading the file
+	return input;
+}
+/*----------------------------------------------------------------------------------------------------------------------------------*/
 
 /*Function returns score relating to the suitability of a decrypted piece of text by opening two files, one containing 10000 of the 
  most common words, the other cotaining text that has just been decrypted using the decryption function above, both as read only. 
@@ -1311,25 +1376,31 @@ char *stringMakerOutput()
  The higher the score the closer the text should be to decryption, so the score of 1 key is compared with the score of another and 
  the key that produced the highest score will ultimately be kept*/
 /*----------------------------------------------------------------------------------------------------------------------------------*/
-int subWordComparison()
+int subWordComparison(int option, char decryptedString[])
 {
-	//declaration and opening of the two files used
-	
-	FILE *decryptedString = fopen("output.txt", "r");
-	//declaration of the two char arrays used to store each string
-	static char words1[100000];
-	char str[10000];
 	//declaration of n and k, used as counters later in function, and score which is returned at end of function
 	int n, k, score = 0;
 	static int done = 0;
-
-	//for loop runs until the end of the file decryptedString (output.txt) is reached, storing a character in str on each iteration
-	for (n = 0; feof(decryptedString) == 0; n++)
+	char str[1000];
+	if (option == 1)
 	{
-		str[n] = fgetc(decryptedString);
-		if (str[n] == EOF)
-			break;
+		FILE *decryptedStringFile = fopen("output.txt", "r");
+		for (n = 0; feof(decryptedStringFile) == 0; n++)
+		{
+			decryptedString[n] = fgetc(decryptedStringFile);
+			if (decryptedString[n] == EOF)
+			{
+				decryptedString[n] = 0;
+				break;
+			}
+		}
+		printf("Decrypted String = '%s'", decryptedString);
+		fclose(decryptedStringFile);
 	}
+	//declaration of the two char arrays used to store each string
+	static char words1[100000];
+	//for loop runs until the end of the file decryptedString (output.txt) is reached, storing a character in str on each iteration
+
 	//for loop runs until the end of the file wordlist10000.txt is reached, after which the loop breaks
 	if (done == 0)
 	{FILE *wordsForComparison1 = fopen("wordlist10000.txt", "r");
@@ -1350,7 +1421,7 @@ int subWordComparison()
 		done = 1;fclose(wordsForComparison1);
 	}
 	//multi layer for loop that moves through str character by character
-	for (n = 0; str[n] != 0; n++)
+	for (n = 0; decryptedString[n] != 0; n++)
 	{
 		/*for loop checks whether a combination of four, three or two characters from str match any four, three or two characters from 
 		words1, then adds to score based on how many character match. Once the entirety of words1 is tested, this for loop exits, n is
@@ -1359,7 +1430,7 @@ int subWordComparison()
 		for (k = 0; words1[k] != 0; k++)
 		{
 			//4 is added to score if 4 characters from str match four characters from words1
-			if (/*str[n] != ' '&& */(str[n] == words1[k]) && (str[n+1] == words1[k+1]) && (str[n+2] == words1[k+2]) && (str[n+3] == words1[k+3]))
+			if (/*str[n] != ' '&& */(decryptedString[n] == words1[k]) && (decryptedString[n+1] == words1[k+1]) && (decryptedString[n+2] == words1[k+2]) && (decryptedString[n+3] == words1[k+3]))
 			{
 				score += 4;
 				break;
@@ -1381,9 +1452,7 @@ int subWordComparison()
 		}
 	}
 	printf("%d\n", score);
-	//files used are closed so that they may be manipulated by other functions without experiencing any issues
-	
-	fclose(decryptedString);
+
 	//the final score is returned
 	return score;
 }
