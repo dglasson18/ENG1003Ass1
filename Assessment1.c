@@ -48,21 +48,21 @@ void menu3();
 void menu4();
 char getChar();
 int getNumber();
-char *lightSubDecryption(char input[], char str1[]);
-char *stringMakerInput();
+int inputCheck();
 
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 int main()
 {
 	//variable used to control the loop, as the run function returns 0 when the user opts to finish
+	
 	int end = 1;
 	//while(run()) could also work
 	//run function is called repeatedly until user selects an option in the run() function that returns 0
+	
 	while(end != 0)
 	{
 		end = run();
 	}
-
 	return 0;
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
@@ -86,7 +86,7 @@ int run()
 	end = 1;
 	while (end != 0)
 	{
-		printf("Please select the corresponding number for the function you wish to use: ");
+		printf("\nPlease select the corresponding number for the function you wish to use: ");
 		//calls the function getNumber(), which will then store an int from stdin in choice. No strictly necessary as
 		//scanf("%d", &choice could also have been used, but I thought it was a good opportunity to play around with various functions
 		//that serve a relatively simple purpose
@@ -116,7 +116,7 @@ int run()
 				//a valid value is entered
 				while (secChoice < 97 || secChoice > 100)
 				{
-					printf("Please enter a valid option\n");
+					printf("\nPlease enter a valid option\n");
 					secChoice = getChar();
 				}
 				//calls another function containing a switch statement which calls functions relating specifically to rotation encryption
@@ -219,13 +219,14 @@ menu*/
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 void mainMenu()
 {	
-	printf("Available functions\n");
+	printf("\nAvailable functions\n");
 	printf("	(1) Encrypt message using Rotation Cipher\n");
 	printf("	(2) Decrypt message using Rotation Cipher\n");
 	printf("	(3) Enccypt message using Substitution Cipher\n");
 	printf("	(4) Decrypt message using Substitution Cipher\n");
 	printf("	(5) Decrypt message using unknown rotation cipher\n");
 	printf("	(6) Decrypt message using unknown substitution cipher\n");
+	printf("		This may take some time, so please be patient\n");
 	printf("	(7) Show Options\n");
 	printf("	(0) End\n");
 }
@@ -309,6 +310,67 @@ char getChar()
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 
+/*returns 1 if there has been an issue with the file, else returns 0. If an issue with the file is identified, users are given the 
+opportunity to rectify it*/
+/*----------------------------------------------------------------------------------------------------------------------------------*/
+int inputCheck()
+{
+	//opens file input, with read only permissions
+	FILE * input = fopen("input.txt", "r");
+	//char test will be used to store characters which will be tested, explained below
+	char test;
+	//n is used as a counter, containsLetter is used like a flag to identify whether or not any letters from the alphabet were found
+	int n, containsLetter = 0, end = 0;
+	//tests whether the pointer points to a file, if null then the file input.txt wasn't present
+	if (input == NULL)
+	{
+		//not sure whether or not this is necessary as input == null
+		fclose(input);
+		//opens the file input with write privileges. This creates the file, solving the problem of it not existing
+		input = fopen("input.txt", "w");
+		//file is closed so that plainTextWriter() can be used without experiencing any monumental hiccups
+		fclose(input);
+		//lets user know that the file didn't exist
+		printf("\nThe file used to store the text to encrypt/decrypt does not exist\n");
+		//allows user to enter text, which will then be stored in the newly created input.txt
+		plainTextWriter();
+		end =1;
+	}
+	if (end == 1)
+		input = fopen("input.txt", "r");
+	//for loop will run until the end of the file is reached
+	for (n = 0; feof(input) == 0 && n < 10; n++)
+	{
+		//takes a character from input.txt which can then be tested.
+		test = fgetc(input);
+		//when the end of the file is reached, the for loop is broken
+		if (test == EOF)
+		{
+			break;
+		}
+		//loop initiates if an upper or lower case letter is found, the loop then breaks, as encryption theoretically only requires
+		//one letter - if the file only contains numbers or other such characters, contains letter will remain 0
+		if ((test > 64 && test < 91) || (test > 96 && test < 123))
+		{
+			fclose(input);
+			containsLetter = 1;
+			return 0;
+		}
+	}
+	//assumes that the file is either empty only contains letters - thus ensuring that encryption can actually be done
+	if (containsLetter == 0)
+	{
+		printf("\nThe file is either empty, or doesn't contain any letters that can be encrypted\n");
+		//takes a users input from console and stores it in 0
+		plainTextWriter();
+		//end = 0 will cause while loop to repeat, this will cause test to be repeated in case user didn't enter any valid characters
+		//when prompted by plainTextWriter()
+		end = 1;
+	}
+	fclose(input);
+	return end;
+}
+/*----------------------------------------------------------------------------------------------------------------------------------*/
 /*rotEncChoice takes a char, intended to be a,b,c or d, as an argument and calls a function based on that char. This function
 controls which variation of rotation encryption is completed. It does not have a return value, as any work done is stored in input, 
 output or cipher files*/ 
@@ -521,52 +583,72 @@ void unRotDecrypt()
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 
+/*Function called when user wishes to decrypt a string encrypted with an unknown substiution cipher. Analysis is performed on the
+encrypted string and a key is generated on the frequency of letters when compared with general frequency of characters in the english
+language, which is then written to key.txt. Decryption is then completed with this initial key and a baseline score is generated by,
+identifying the suitability of decrypted string by comparing it with 10 000 common english words. Secondary analysis is then completed
+to try and identify parts of the key using common words that are somewhat unique, such as 'DID' (this aspect wasn't overly successful)
+and a modified key is generated and returned as a pointer, which can then be passed to the decryption function. If the decrypted text
+is found to be more suitable then it will generate a higher score, and the new key will be written to key.txt. Random characters in the
+key are then swapped in the key, and the resulting key is used to decrypt the string and test for suitability to the same effect.
+This process then essentially repeats itself with some variation (explained below), until such point as 1000 modifications have
+occurred and no increase in score has been experienced. At this point it is assumed that the encrypted string will not improve and so
+the key with the highest score is written to key.txt and is used to perform a final decryption. 
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 void unSubDecrypt()
 {
 	int score;
-	int counter;
-	char input[1000];
-	stringMakerInput(input);
-	printf("%s\n", input);
+	//calls function that analyses encrypted string and stores a key in key.txt based on letter frequency
 	subAnalysis();
+	//substitutuion decryption is completed, reading encrypted string from input.txt and key from key.txt (see function for more)
 	substitutionDecryption(1, "");
-	score = subWordComparison(1, input);
+	//a baseline score is generated using subWordComparison and stored in score
+	score = subWordComparison();
+	//a modified string is generated based on secondary analysis, with str1 used as a pointer
 	char *str1 = subAnalysis2();
-	printf("\n%s\n", str1);
-	lightSubDecryption(input, str1);
-	printf("The decrypted string is '%s'\n", input);
-	if (score < subWordComparison(0,input))
+	/*substitution decryption is completed, reading ecrypted string from input.txt and the key as an argument passed to the function
+	using the pointer str1*/
+	substitutionDecryption(0, str1);
+	//if the new key successfully generates more decrypted characters, the score should be greater, in which case it is written to key
+	if (score < subWordComparison())
 	{
 		FILE *key = fopen("key.txt", "w");
-		//fprintf(key,"%s", str1);
+		fprintf(key,"%s", str1);
 		fclose(key);
 	}
-	printf("str1 = %s\n", str1);
-	for (int n = 0; n < 1000; n++)
+	//printf("str1 = %s\n", str1); //used for testing
+	for (int n = 0; n < 700; n++)
 	{
+		//two random values within key are swapped, with str used as a pointer to the result
 		char * str = keyModifier(0, str1);
-		//printf("str = %s\n", str);
-		lightSubDecryption(input, str);
-		int newScore = subWordComparison(0,input);
-		
+		//new string is printed to console to give visual indication of progress
+		printf("str = %s\n", str);
+		//decryption is attempted with new string
+		substitutionDecryption(0, str);
+		//suitability is tested and stored in newScore, which will then be used for comparsion
+		int newScore = subWordComparison();
+		//score of most recent string is compared with that of the most successful string, and if higher will enter loop
 		if (newScore > score)
 		{
+			//newScore, being higher, replaces the old value of score as it is now obsolete
 			score = newScore;
+			//new string overwrites previous best string, this allows the new best string to be modified
 			for (int k=0; str[k] != 0; k++)
 			{
 				str1[k] = str[k];
-			}/*
-			FILE *key = fopen("key.txt", "w");
-			fprintf(key, "%s", str1);
-			fclose(key);*/
+			}
+			//indicates to user that a better string has been found, also useful during testing
 			printf("str1 = %s\n", str1);
+			/*n is reset to 0 as a new best string has been found, thus allowing the process of waiting for 1000 revisions without 
+			an increase in score to be carried out as intended*/
 			n = 0;
 		}
 	}
+	//once 1000 revisions have occurred without an increase in score, the best key is written to key.txt
 	FILE *key = fopen("key.txt", "w");
 	fprintf(key, "%s", str1);
 	fclose(key);
+	//a final decryption is then carried out using decrypted text stored in input.txt and key stored in key.txt
 	substitutionDecryption(1,"");
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
@@ -576,6 +658,12 @@ encrypted/decrypted from input.txt and writes it to output.txt, while the cipher
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 void rotationEncryption(int cipher)
 {
+	static int inputTest;
+	inputTest = inputCheck();
+	while (inputTest == 1)
+	{
+		inputTest = inputCheck();
+	}
 	/*declaration of files that are used in the function, names are kept the same as file names for clarity. The text being encrypted
 	is read from input, and once encrypted is written to output*/
 	FILE *input;
@@ -714,6 +802,12 @@ void substitutionEncryption(int option)
 			printf("There is something wrong with the key, please enter a new key\n");
 			writeKey();
 		}
+		static int inputTest;
+		inputTest = inputCheck();
+		while (inputTest == 1)
+		{
+			inputTest = inputCheck();
+		}
 	}
 	//prints the key being used to console
 	printf("The key being used is %s\n", key);
@@ -840,34 +934,6 @@ void substitutionEncryption(int option)
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 
-/*----------------------------------------------------------------------------------------------------------------------------------*/
-char * lightSubDecryption(char input[], char str1[])
-{
-	int n, k;
-	//printf("%s\n", str);
-	/* for loop controls the implementation of decryption one character at a time. Once one character is decrypted as outlined below,
-	n is incremented and the next value stored in str is decrypted until the end of str is reached*/
-	//printf("Testing input light sub %s\n", input);
-	//printf("Testing key in light sub %s\n", str1);
-	for (n = 0; input[n] != 0; n++)
-	{
-		/*for loop cycles through all of the characters in key until one matching the current character in str is found. Once a
-		match is found, the if statement will assign the current value of str to k + 65, as this will match the decrypted value
-		of the character.*/
-		for (k=0; str1[k] != 0; k++)
-		{
-			if (input[n] == str1[k])
-			{
-				input[n] = k + 65;
-				break;
-			}		
-		}
-		/*once str[n] has been assigned it's decrypted value, it is written to output*/
-	}
-	return input;
-}
-/*----------------------------------------------------------------------------------------------------------------------------------*/
-
 /*substitutionDecryption() is the function that performs the decryption of a piece of text, reading the text to be decrypted from
 input.txt, the key to be used from key.txt and writing the resulting text from decryption to output.txt. An integer is taken as an
 argument to control different variations of the function, such as allowing the user to enter the key via console, and a char array
@@ -885,55 +951,84 @@ void substitutionDecryption(int option, char str1[])
 	/*integers n and k are used incrementing values during for loops, while end holds the value that determines whether or not the
 	while loop continues to run*/
 	int n = 0, k = 0, end = 1;
-	/*switch statement could have been used as well. Following if statements take the integer argument passed to the function when it
-	was initially called, and performs an action based on that integer*/
-	/*option = 1 means the user opted to read text and key from a file, and therefore only keyCaseChange() is called*/
-	if (option == 1)
+	/*while loop will run until functions keyLengthCheck() and duplicateChecker() only return 0, which will result in end = 0, thus
+	causing the loop to exit*/
+	while (end != 0)
 	{
-		//function reads the contents of key.txt and converts any lower case letters to upper case		
-		keyCaseChange();
-	}
-	/*option = 2 means the user opted to read text from file and key from stdin*/
-	else if (option == 2)
-	{
-		/*writeKey() enables user to reads key from console and stores it in key.txt, where it can then be manipulated by other
-		functions. Key caseChance() is not required as writeKey() checks user input to ensure it contains no capitals before
-		writing it to key.txt*/
-		writeKey();
-	}
-	/*option = 3 means the user opted to read key from key.txt and the text to be encrypted from console*/ 
-	else if (option == 3)
-	{
-		/*calling plainTextWriter() prompts the user to enter the text that they would like to encrypt/decrypt. It then stores
-		the result in input.txt which can then be read by substitutionEncryption() later in the function*/
-		plainTextWriter();
-		//function reads the contents of key.txt and converts any lower case letters to upper case
-		keyCaseChange();
-	}
-	/*option 4 means the user opted to read key and text from console*/
-	else if (option == 4)
-	{
-		/*calling plainTextWriter() prompts the user to enter the text that they would like to encrypt/decrypt. It then stores
-		the result in input.txt which can then be read by substitutionEncryption() later in the function*/
-		plainTextWriter();
-		/*writeKey() enables user to reads key from console and stores it in key.txt, where it can then be manipulated by other
-		functions. Key caseChance() is not required as writeKey() checks user input to ensure it contains no capitals before
-		writing it to key.txt*/
-		writeKey();
-	}
-	//should only occur when performing decryption of text with unknown key
-	else
-	{
-		//for loop takes value stored in str1[n] and stores that value in key[n] until the end of str1[n] is reached
-		//This was done to troubleshoot issues that were ocurring as a result of manipulating str1 during decryption
-		FILE *key2 = fopen("key.txt", "w");
-		for (n = 0; str1[n] != 0; n++)
+		/*switch statement could have been used as well. Following if statements take the integer argument passed to the function when it
+		was initially called, and performs an action based on that integer*/
+		/*option = 1 means the user opted to read text and key from a file, and therefore only keyCaseChange() is called*/
+		if (option == 1)
 		{
-			key[n] = str1[n];
-			fputc(key[n], key2);
+			//function reads the contents of key.txt and converts any lower case letters to upper case		
+			keyCaseChange();
 		}
-		fclose(key2);
-		
+		/*option = 2 means the user opted to read text from file and key from stdin*/
+		else if (option == 2)
+		{
+			/*writeKey() enables user to reads key from console and stores it in key.txt, where it can then be manipulated by other
+			functions. Key caseChance() is not required as writeKey() checks user input to ensure it contains no capitals before
+			writing it to key.txt*/
+			writeKey();
+		}
+		/*option = 3 means the user opted to read key from key.txt and the text to be encrypted from console*/ 
+		else if (option == 3)
+		{
+			/*calling plainTextWriter() prompts the user to enter the text that they would like to encrypt/decrypt. It then stores
+			the result in input.txt which can then be read by substitutionEncryption() later in the function*/
+			plainTextWriter();
+			//function reads the contents of key.txt and converts any lower case letters to upper case
+			keyCaseChange();
+		}
+		/*option 4 means the user opted to read key and text from console*/
+		else if (option == 4)
+		{
+			/*calling plainTextWriter() prompts the user to enter the text that they would like to encrypt/decrypt. It then stores
+			the result in input.txt which can then be read by substitutionEncryption() later in the function*/
+			plainTextWriter();
+			/*writeKey() enables user to reads key from console and stores it in key.txt, where it can then be manipulated by other
+			functions. Key caseChance() is not required as writeKey() checks user input to ensure it contains no capitals before
+			writing it to key.txt*/
+			writeKey();
+		}
+		//should only occur when performing decryption of text with unknown key
+		else
+		{
+			//for loop takes value stored in str1[n] and stores that value in key[n] until the end of str1[n] is reached
+			//This was done to troubleshoot issues that were ocurring as a result of manipulating str1 during decryption
+			FILE *key2 = fopen("key.txt", "w");
+			for (n = 0; str1[n] != 0; n++)
+			{
+				key[n] = str1[n];
+				fputc(key[n], key2);
+			}
+			fclose(key2);
+			
+		}
+		keyText = fopen("key.txt", "r");
+		/*fscanf() reads from keyText and stores the string in key. %s was only used as there are no spaces in key that generally
+		seem to cause havoc when reading strings*/
+		fscanf(keyText, "%s", key);
+		/*keyLengCheck takes the key as an argument and returns 0 if it has 26 characters, while duplicateChecker() takes key as 
+		an argument and returns 0 if it only contains one of each character, else both functions will return 1*/
+		end = keyLengthCheck(key) + duplicateChecker(key);
+		fclose(keyText);
+		/*if an issue was found with key, if statement will be triggered prompting the user to re-enter the key via the console.
+		The writeKey() function won't exit until a valid key is entered, which will then be written to key.txt.*/
+		if (end != 0)
+		{
+			printf("There is something wrong with the key, please enter a new key\n");
+			writeKey();
+		}
+
+	}	
+	if (option > 0)
+	{
+		int inputTest = 1;
+		while (inputTest == 1)
+		{
+			inputTest = inputCheck();
+		}
 	}
 	/*Opens appropriate files with write, read and read privileges as required*/
 	output = fopen("output.txt", "w");
@@ -949,6 +1044,7 @@ void substitutionDecryption(int option, char str1[])
 	/*for loop would have been appropriate, but the code was already written with a while loop before it came to be like this
 	so it was just left as is and n++ was added at the bottom to ensure values were stored in str correctly*/
 	//will continue loop until the end of input is reached, end = 0 and break; ensure that one way or another the loop stops
+	end = 1;
 	while(end != 0)
 	{
 		//reads a character from input and stores it in str, each iteration of loop moves on to the next character input
@@ -963,14 +1059,10 @@ void substitutionDecryption(int option, char str1[])
 		else if (str[n] > 96 && str[n] < 123)
 			str[n] = str[n] - 32;
 		//tyring to figure out how to work with ellipsis in the unknown key substitution string
-		/*else if (str[n] == 85)
+		else if (str[n] > 123)
 		{
-			str[n] = 46;
-			n++;
-			str[n] = 46;
-			n++;
-			str[n] = 46;
-		}*/	
+			printf("That character is %d\n", str[n]);
+		}
 		//n is incremented so that the next character read from input will be stored in the next location in str
 		n++;
 	}
@@ -993,6 +1085,7 @@ void substitutionDecryption(int option, char str1[])
 		/*once str[n] has been assigned it's decrypted value, it is written to output*/
 		fputc(str[n], output);
 	}
+	printf("String is %s\n", str);
 	//close the files used to prevent any conflict if other functions need to manipulate them in any way
 	fclose(input);
 	fclose(output);
@@ -1008,6 +1101,12 @@ the return value is then used in other functions, such as rotationCipherCalculat
 int mostCommonLetter()
 {
 	//declaration of pointer to file that text will be read from
+	static int inputTest = 1;
+	inputTest = inputCheck();
+	while (inputTest == 1)
+	{
+		inputTest = inputCheck();
+	}
 	FILE *input;
 	/*str stores the text as a string to be analysed. Initialised in as issues were occuring when the function was re-used with text
 	different lengths and array was only declared as char str[2000]*/
@@ -1336,36 +1435,6 @@ char *stringMakerOutput()
 	return str;
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
-char *stringMakerInput(char input[])
-{
-	//decaration of pointer to file that will be used as input, in this instance output.txt will be used
-	FILE *input1;
-	//n is used as a counter for control of for loops and assisting in ensuring that str is written to properly
-	int n;
-	//opens the file being used for input with read only permissions
-	input1 = fopen("input.txt", "r");	
-	//for loop that zeros every value in str, as it is static and would retain values from the previous time it was recalled otherwise
-	for (n = 0; n < 999; n++)
-	{
-		input[n] = 0;
-	}	
-	//for loop intended to scan a character at a time from input and store it in str[n].
-	for (n = 0; feof(input1) == 0; n++)
-	{
-		//fscanf was used instead of fgetc to experiment and see whether there are any functional differences. fgetc could also be used
-		fscanf(input1, "%c", &input[n]);
-		//if fscanf reaches the end of input, then if statement will be triggered and will break out of for loop
-		if (input[n] == EOF)
-			break;
-		//printf("String Tested is %s\n", str);
-	}
-	//printf("String Tested is %s\n", str);
-	//closes the file so that other functions can manipulate it without experiencing any issues
-	fclose(input1);
-	//returns the string created from reading the file
-	return input;
-}
-/*----------------------------------------------------------------------------------------------------------------------------------*/
 
 /*Function returns score relating to the suitability of a decrypted piece of text by opening two files, one containing 10000 of the 
  most common words, the other cotaining text that has just been decrypted using the decryption function above, both as read only. 
@@ -1376,31 +1445,25 @@ char *stringMakerInput(char input[])
  The higher the score the closer the text should be to decryption, so the score of 1 key is compared with the score of another and 
  the key that produced the highest score will ultimately be kept*/
 /*----------------------------------------------------------------------------------------------------------------------------------*/
-int subWordComparison(int option, char decryptedString[])
+int subWordComparison()
 {
+	//declaration and opening of the two files used
+	
+	FILE *decryptedString = fopen("output.txt", "r");
+	//declaration of the two char arrays used to store each string
+	static char words1[100000];
+	char str[10000];
 	//declaration of n and k, used as counters later in function, and score which is returned at end of function
 	int n, k, score = 0;
 	static int done = 0;
-	char str[1000];
-	if (option == 1)
-	{
-		FILE *decryptedStringFile = fopen("output.txt", "r");
-		for (n = 0; feof(decryptedStringFile) == 0; n++)
-		{
-			decryptedString[n] = fgetc(decryptedStringFile);
-			if (decryptedString[n] == EOF)
-			{
-				decryptedString[n] = 0;
-				break;
-			}
-		}
-		printf("Decrypted String = '%s'", decryptedString);
-		fclose(decryptedStringFile);
-	}
-	//declaration of the two char arrays used to store each string
-	static char words1[100000];
-	//for loop runs until the end of the file decryptedString (output.txt) is reached, storing a character in str on each iteration
 
+	//for loop runs until the end of the file decryptedString (output.txt) is reached, storing a character in str on each iteration
+	for (n = 0; feof(decryptedString) == 0; n++)
+	{
+		str[n] = fgetc(decryptedString);
+		if (str[n] == EOF)
+			break;
+	}
 	//for loop runs until the end of the file wordlist10000.txt is reached, after which the loop breaks
 	if (done == 0)
 	{FILE *wordsForComparison1 = fopen("wordlist10000.txt", "r");
@@ -1421,7 +1484,7 @@ int subWordComparison(int option, char decryptedString[])
 		done = 1;fclose(wordsForComparison1);
 	}
 	//multi layer for loop that moves through str character by character
-	for (n = 0; decryptedString[n] != 0; n++)
+	for (n = 0; str[n] != 0; n++)
 	{
 		/*for loop checks whether a combination of four, three or two characters from str match any four, three or two characters from 
 		words1, then adds to score based on how many character match. Once the entirety of words1 is tested, this for loop exits, n is
@@ -1430,7 +1493,7 @@ int subWordComparison(int option, char decryptedString[])
 		for (k = 0; words1[k] != 0; k++)
 		{
 			//4 is added to score if 4 characters from str match four characters from words1
-			if (/*str[n] != ' '&& */(decryptedString[n] == words1[k]) && (decryptedString[n+1] == words1[k+1]) && (decryptedString[n+2] == words1[k+2]) && (decryptedString[n+3] == words1[k+3]))
+			if (/*str[n] != ' '&& */(str[n] == words1[k]) && (str[n+1] == words1[k+1]) && (str[n+2] == words1[k+2]) && (str[n+3] == words1[k+3]))
 			{
 				score += 4;
 				break;
@@ -1452,7 +1515,9 @@ int subWordComparison(int option, char decryptedString[])
 		}
 	}
 	printf("%d\n", score);
-
+	//files used are closed so that they may be manipulated by other functions without experiencing any issues
+	
+	fclose(decryptedString);
 	//the final score is returned
 	return score;
 }
@@ -1638,6 +1703,27 @@ int wordChecker()
 			complete = 1;
 			break;
 		}
+		else if (stringToBeChecked[n] == ' ' && stringToBeChecked[n+1] == 'B' && stringToBeChecked[n+2] == 'E' && stringToBeChecked[n+3] == ' ')
+		{
+			complete = 1;
+			break;
+		}
+		else if (stringToBeChecked[n] == ' ' && stringToBeChecked[n+1] == 'T' && stringToBeChecked[n+2] == 'O' && stringToBeChecked[n+3] == ' ')
+		{
+			complete = 1;
+			break;
+		}
+		else if (stringToBeChecked[n] == ' ' && stringToBeChecked[n+1] == 'O' && stringToBeChecked[n+2] == 'F' && stringToBeChecked[n+3] == ' ')
+		{
+			complete = 1;
+			break;
+		}	
+		else if (stringToBeChecked[n] == ' ' && (stringToBeChecked[n+1] == 'I' || stringToBeChecked[n+1] == 0) && stringToBeChecked[n+2] == 'N' && stringToBeChecked[n+3] == ' ')
+		{
+			complete = 1;
+			break;
+		}
+		
 		//used during the early stages of testing code, had an issue where extra full stops were being appended to the end of strings*/
 		//possibly redundant now but left in just in case
 		else if ((stringToBeChecked[n] == '.' && stringToBeChecked[n+1] == '.'))
@@ -1724,96 +1810,165 @@ void plainTextWriter()
 	return;
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
-
+/*experimental function, checks the encrypted string for words that could possibly be identified without a key, and assigns the
+appropriate character to that value in the key. The result is then returned and used during unSubDecryption*/
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 char * subAnalysis2()
 {
-	char encryptedString[10000], str[10000];
+	//checks the file input.txt to ensure that it exists and has content that can be encrypted, if not user is prompted to enter
+	static int inputTest = 1;
+	inputTest = inputCheck();
+	while (inputTest == 1)
+	{
+		inputTest = inputCheck();
+	}
+	//char arrays that store 
+	char str[10000];
 	FILE *theEncryptedString = fopen("input.txt", "r");
+	//array that stores the key and is returned at the end of the function
 	static char key[26];
-	static int f = 0;
-	int n, k, p;
-	int found[27];
+	//int n and k are used as counters later in function
+	int n, k;
+	/*found array helps identify whether or not a characters key has been found, and thus whether other words can be identified, may 
+	not	be properly implemented in final code, option is used to control switch, see switch for details*/
+	int found[27], option;
+	//declaration and opening of file that stores the key, which should be modified and returned as a char array at end of function
 	FILE *theKey = fopen("key.txt", "r");
 	
+	//for loop 0's out all values in found array
 	for (n = 0; n < 27; n++)
 	{
 		found[n] = 0;
 	}
-	
+	//for loop reads single character from key.txt, storing in key[n], then moving on to next character until end of file is reached
 	for (n = 0; feof(theKey) == 0; n++)
 	{
 		fscanf(theKey, "%c", &key[n]);
 		if (key[n] == EOF)
 			break;
 	}
+	//file is closed to minimise the risk of issues ocurring when other functions try to access it
 	fclose(theKey);
-
+	/*for loop read single character from input.txt at a time, storing in str[n] then moving on until end of file is
+	reached*/
 	for (n = 0; feof(theEncryptedString) == 0; n++)
 	{
-		fscanf(theEncryptedString, "%c", &encryptedString[n]);
-		if (encryptedString[n] == EOF)
+		fscanf(theEncryptedString, "%c", &str[n]);
+		if (str[n] == EOF)
 			break;
-	}
-	for (n = 0; encryptedString[n] !=0; n++)
-	{
-		str[n] = encryptedString[n];
 	}
 
 	//printf("String in subanalysis2 is %s\n", encryptedString);
-	
+	/*template
 	for (n=0; str[n] != 0; n++)
 	{
-		//printf("%c", encryptedString[n]);
-		//printf("%d\n", (int)str[n]);
-		if ((int)str[n] > 65 && str[n+1] > 65 && str[n+2] == str[n] && str[n+3] == ' ')// && (int)str[n+1] > 65 && str[n+2]== str[n])
+		if (test the values)
 		{
-			char three = key[3];
-			char eight = key[8];
-			for (k = 0; key[k] != 0; k++)
-			{
-				if (key[k] == str[n])
-					key[k] = three;
-				else if (key[k] == str[n+1])
-					key[k] = eight;
-			}
-			key[3] = str[n];
-			key[8] = str[n+1];
-			printf("%c%c%c\n", str[n], str[n+1], str[n+2]);
-			found[3] = 1;
-			found[8] = 1;
-			break;
-		}
-	}
-	printf("This is key 7 - %c\n", key[7]);
-	printf("The key is %s\n", key);
-	for (n=0; str[n] != 0; n++)
-	{
-		if (str[n] == ' ' && str[n+1] > 64 && str[n+2] > 64 && str[n+3] > 64 && str[n+4] == str[n+1] && str[n+5] == ' ')
-		{
-			char nineteen = key[19];
-			char seven = key[7];
-			printf("This is seven%c\n", seven);
-			char zero = key[0];
-			int option = 1;
+			char keyLocation = key[keyLocation];
 			for (k = 0; key[k] != 0; k++)
 			{
 				switch(option)
 				{
 					case 1:
+						if (key[k] == str[n])
+						{
+							key[keyLocation] = str[n];
+							key[k] = keyLocation;
+							k = 0;
+							option = 2;
+						}
+						break;						
+					case 2:
+						if (key[k] == str[n+1])
+						{
+							key[keyLocation] = str[n+1];
+							key[k] = keyLocation;
+							k = 0;
+						}
+						break;
+				}
+			}
+			found[keyLocation] = 1;
+			found[keyLocation] = 1;
+			break;
+		}
+	}*/
+	/*for loop steps trough every value of the encrypted string until a section that could match the decrypted word 'DID'
+	after which, appropriate values are assigned to key array and  the loop breaks*/
+	for (n=0; str[n] != 0; n++)
+	{
+		//printf("%d\n", (int)str[n]); //used for testing
+		/*if statement checks for four conscutive characters, including three letters and a space, with the first letter
+		matching the third letter*/
+		if ((int)str[n] > 65 && str[n+1] > 65 && str[n+2] == str[n] && str[n+3] == ' ')// && (int)str[n+1] > 65 && str[n+2]== str[n])
+		{
+			//variables are used to hold the values of keys so that they aren't lost when swapping values
+			char three = key[3];
+			char eight = key[8];
+			//for loop moves through key array until end of array is rached
+			for (k = 0; key[k] != 0; k++)
+			{
+				/*if statements check to see whether or not values in key matches the letter's suspected of making up
+				the decrypted word 'DID', when a match is found, the key is overwritten with the value that was stored
+				in key location where the proper key needs to be stored*/
+				if (key[k] == str[n])
+					key[k] = three;
+				else if (key[k] == str[n+1])
+					key[k] = eight;
+			}
+			//stores the proper key in the appropriate location
+			key[3] = str[n];
+			key[8] = str[n+1];
+			//printf("%c%c%c\n", str[n], str[n+1], str[n+2]); // used for testing
+			/*setting values to 1 identifies that the appropriate character fro key[3] and key[8] have been found, and that
+			identification of other words relying on these characters can be undertaken*/
+			found[3] = 1;
+			found[8] = 1;
+			//breaks out of the for loop, as a word has already been found and no purpose is served by repeating process
+			break;
+		}
+	}
+	/*for loop steps trough every value of the encrypted string until a section that could match the decrypted word 'DID'
+	after which, appropriate values are assigned to key array and  the loop breaks*/
+	for (n=0; str[n] != 0; n++)
+	{
+		//if statement checks for consecutive characters that may make up decrypted word 'THAT'
+		if (str[n] == ' ' && str[n+1] > 64 && str[n+2] > 64 && str[n+3] > 64 && str[n+4] == str[n+1] && str[n+5] == ' ')
+		{
+			//variables are used to hold the values of keys so that they aren't lost when swapping values
+			char nineteen = key[19];
+			char seven = key[7];
+			//printf("This is seven%c\n", seven); // used for testing
+			char zero = key[0];
+			//option controls switch statement below
+			option = 1;
+			//for loop moves through key array until end of array is rached
+			for (k = 0; key[k] != 0; k++)
+			{
+				/*switch statement is used as using only if statements caused two H's to be written to key, controlling
+				the order in which the key values are swapped from first to last in alphabet prevents this from happening
+				and this control is achieved through the if statement*/
+				switch(option)
+				{
+					case 1:
 						if (key[k] == str[n+3])
 						{
-							printf("K for a is %d\n", k);
+							//printf("K for a is %d\n", k); //used for testing
+							/*character suspected of being appropriate key is swapped with character currently in the
+							location that suspected character would be required to be in in order for key to be accurate*/
 							key[0] = str[n+3];
 							key[k] = zero;
+							//k is reset to 0 so that all values of key are tested in next case
 							k = 0;
+							//moves execution to next loop once keys have been swapped and if statement exits
 							option = 2;
 						}
 						break;						
 					case 2:
 						if (key[k] == str[n+2])
 						{
-							printf("K for h is %d\n", k);
+							//printf("K for h is %d\n", k); //used for testing
+							//see case 1 for info
 							key[7] = str[n+2];
 							key[k] = seven;
 							k = 0;
@@ -1823,28 +1978,47 @@ char * subAnalysis2()
 					case 3:
 						if (key[k] == str[n+1])
 						{
-							printf("K for t is %d\n", k);
+							//printf("K for t is %d\n", k); //used for testing
+							//see case 1 for info
 							key[19] = str[n+1];
 							key[k] = nineteen;
+							//k is not required to be reset or option changed, as all values have been set
 						}
 						break;
 				}
 			}
-				
-
-
-				printf("%d", k);
-			
-			printf("here is %c%c%c%c\n", str[n+1], str[n+2], str[n+3], seven);
-			
-			
-			
+			//printf("here is %c%c%c%c\n", str[n+1], str[n+2], str[n+3], seven); //used for testing
+			/*setting values to 1 identifies that the appropriate character fro key[3] and key[8] have been found, and that
+			identification of other words relying on these characters can be undertaken*/
 			found[19] = 1;
 			found[7] = 1;
 			found [0] = 1;
 			break;
 		}
-	}/*
+	}
+	/*
+	if (found[3] == 1 && found[0] == 1)
+	{
+		for (n=0; str[n] != 0; n++)
+		{
+			if (str[n] == ' ' && str[n+1] == key[0] && str[n+2] > 64 && str[n+3] == key[3] && str[n+4] < 64)
+			{
+				char fourteen = key[14];
+				for (k = 0; key[k] != 0; k++)
+				{
+					if (key[k] == str[n+2])
+					{
+						key[14] = str[n+2];
+						key[k] = fourteen;
+					}
+				}
+				found[14] = 1;
+				break;
+			}
+			break;
+		}
+	}
+	/*
 	if (found[3] == 1)
 	{
 		for (n=0; str[n] !=0; n++)
@@ -1963,7 +2137,6 @@ char * subAnalysis2()
 	}
 	for (n = 0; str[n] != 0; n++)
 	{
-
 	}
 	for (n=0; str[n] != 0; n ++)
 	{
@@ -1992,7 +2165,7 @@ char * subAnalysis2()
 			break;
 		}
 	}*/
-	
+	//closes the file input.txt to reduce the risk of issues when other functions try to access it
 	fclose(theEncryptedString);
 	//fclose(theKey);
 	return key;
@@ -2010,6 +2183,12 @@ int subAnalysis()
 {
 	//encryptedString will store the string being analysed, while key will store the key that is being produced
 	char encryptedString[10000], key[26];
+	static int inputTest = 1;
+	inputTest = inputCheck();
+	while (inputTest == 1)
+	{
+		inputTest = inputCheck();
+	}
 	//declaration and opening of files being used during function, input with read only permissions and output with write only
 	FILE *input = fopen("input.txt", "r");
 	FILE *output = fopen("key.txt", "w");
