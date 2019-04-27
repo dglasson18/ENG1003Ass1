@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 /*Program should be able to do the following to achieve full marks:
 	- Encrypt a message using a rotation cipher given the message text and rotation amount
 	- Decrypt a message using a rotation cipher given cipher text and rotation amount
@@ -522,6 +523,7 @@ void unRotDecrypt()
 void unSubDecrypt()
 {
 	int score;
+	int counter;
 	subAnalysis();
 	substitutionDecryption(1, "");
 	score = subWordComparison();
@@ -534,24 +536,31 @@ void unSubDecrypt()
 		fclose(key);
 	}
 	printf("str1 = %s\n", str1);
-	for (int n = 0; n < 10; n++)
+	for (int n = 0; n < 1000; n++)
 	{
 		char * str = keyModifier(0, str1);
 		printf("str = %s\n", str);
 		substitutionDecryption(0, str);
-		//score = subWordComparison();
-		if (score < subWordComparison())
+		int newScore = subWordComparison();
+		
+		if (newScore > score)
 		{
+			score = newScore;
 			for (int k=0; str[k] != 0; k++)
 			{
 				str1[k] = str[k];
 			}
+			FILE *key = fopen("key.txt", "w");
+			fprintf(key, "%s", str1);
+			fclose(key);
 			printf("str1 = %s\n", str1);
+			n = 0;
 		}
 	}
 	FILE *key = fopen("key.txt", "w");
 	fprintf(key, "%s", str1);
 	fclose(key);
+	substitutionDecryption(1,"");
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -882,10 +891,14 @@ void substitutionDecryption(int option, char str1[])
 	{
 		//for loop takes value stored in str1[n] and stores that value in key[n] until the end of str1[n] is reached
 		//This was done to troubleshoot issues that were ocurring as a result of manipulating str1 during decryption
+		FILE *key2 = fopen("key.txt", "w");
 		for (n = 0; str1[n] != 0; n++)
 		{
 			key[n] = str1[n];
+			fputc(key[n], key2);
 		}
+		fclose(key2);
+		
 	}
 	/*Opens appropriate files with write, read and read privileges as required*/
 	output = fopen("output.txt", "w");
@@ -926,6 +939,7 @@ void substitutionDecryption(int option, char str1[])
 		//n is incremented so that the next character read from input will be stored in the next location in str
 		n++;
 	}
+	//printf("%s\n", str);
 	/* for loop controls the implementation of decryption one character at a time. Once one character is decrypted as outlined below,
 	n is incremented and the next value stored in str is decrypted until the end of str is reached*/
 	for (n = 0; str[n] != 0; n++)
@@ -941,8 +955,8 @@ void substitutionDecryption(int option, char str1[])
 				break;
 			}		
 		}
-		/*once str[n] has been assigned it's decrypted value, it is written to output
-		fputc(str[n], output);*/
+		/*once str[n] has been assigned it's decrypted value, it is written to output*/
+		fputc(str[n], output);
 	}
 	//close the files used to prevent any conflict if other functions need to manipulate them in any way
 	fclose(input);
@@ -1300,34 +1314,40 @@ char *stringMakerOutput()
 int subWordComparison()
 {
 	//declaration and opening of the two files used
-	FILE *wordsForComparison1 = fopen("wordlist10000.txt", "r");
+	
 	FILE *decryptedString = fopen("output.txt", "r");
 	//declaration of the two char arrays used to store each string
-	char words1[100000], str[10000];
+	static char words1[100000];
+	char str[10000];
 	//declaration of n and k, used as counters later in function, and score which is returned at end of function
 	int n, k, score = 0;
+	static int done = 0;
 
 	//for loop runs until the end of the file decryptedString (output.txt) is reached, storing a character in str on each iteration
 	for (n = 0; feof(decryptedString) == 0; n++)
 	{
-		fscanf(decryptedString, "%c", &str[n]);
+		str[n] = fgetc(decryptedString);
 		if (str[n] == EOF)
 			break;
 	}
 	//for loop runs until the end of the file wordlist10000.txt is reached, after which the loop breaks
-	for (n = 0; n < 999998; n++)
-	{
-		//reads a characeter from output.txt and stroes it in words1[n]
-		fscanf(wordsForComparison1, "%c", &words1[n]);
-		//when the end of the file is reached, if statement initiates and breaks out of loop
-		if (words1[n] == EOF)
+	if (done == 0)
+	{FILE *wordsForComparison1 = fopen("wordlist10000.txt", "r");
+		for (n = 0; n < 999998; n++)
 		{
-			break;
+			//reads a characeter from output.txt and stroes it in words1[n]
+			fscanf(wordsForComparison1, "%c", &words1[n]);
+			//when the end of the file is reached, if statement initiates and breaks out of loop
+			if (words1[n] == EOF)
+			{
+				break;
+			}
+			/*identifies if a character is lowercase and converts it to it's uppecase equivalent, if this loop was not put in place
+			then the final score returned at the end of the function would have a higher possibility of being inaccurate*/
+			else if(words1[n] > 95 && words1[n] < 123)
+				words1[n] = words1[n] - 32;
 		}
-		/*identifies if a character is lowercase and converts it to it's uppecase equivalent, if this loop was not put in place
-		then the final score returned at the end of the function would have a higher possibility of being inaccurate*/
-		else if(words1[n] > 95 && words1[n] < 123)
-			words1[n] = words1[n] - 32;
+		done = 1;fclose(wordsForComparison1);
 	}
 	//multi layer for loop that moves through str character by character
 	for (n = 0; str[n] != 0; n++)
@@ -1339,25 +1359,30 @@ int subWordComparison()
 		for (k = 0; words1[k] != 0; k++)
 		{
 			//4 is added to score if 4 characters from str match four characters from words1
-			if ((str[n] == words1[k]) && (str[n+1] == words1[k+1]) && (str[n+2] == words1[k+2]) && (str[n+3] == words1[k+3]))
+			if (/*str[n] != ' '&& */(str[n] == words1[k]) && (str[n+1] == words1[k+1]) && (str[n+2] == words1[k+2]) && (str[n+3] == words1[k+3]))
 			{
 				score += 4;
-			}
+				break;
+			}/*
 			//3 is added to score if 3 characters from str match three characters from wrods1
 			else if (str[n] == words1[k] && str[n+1] == words1[k+1] && str[n+2] == words1[k+2])
 			{
 				score += 3;
+				break;
 			}
+			
 			//2 is added to score if 2 characters from str match two characters from words1
 			else if (str[n] == words1[k] && str[n+1] == words1[k+1])
 			{
 				score += 2;
+				break;
 			}
+			*/
 		}
 	}
-	//printf("%d\n", score);
+	printf("%d\n", score);
 	//files used are closed so that they may be manipulated by other functions without experiencing any issues
-	fclose(wordsForComparison1);
+	
 	fclose(decryptedString);
 	//the final score is returned
 	return score;
@@ -1636,11 +1661,25 @@ char * subAnalysis2()
 {
 	char encryptedString[10000], str[10000];
 	FILE *theEncryptedString = fopen("input.txt", "r");
-	FILE *theKey = fopen("key.txt", "r");
 	static char key[26];
-	int n, k;
-
+	static int f = 0;
+	int n, k, p;
+	int found[27];
+	FILE *theKey = fopen("key.txt", "r");
 	
+	for (n = 0; n < 27; n++)
+	{
+		found[n] = 0;
+	}
+	
+	for (n = 0; feof(theKey) == 0; n++)
+	{
+		fscanf(theKey, "%c", &key[n]);
+		if (key[n] == EOF)
+			break;
+	}
+	fclose(theKey);
+
 	for (n = 0; feof(theEncryptedString) == 0; n++)
 	{
 		fscanf(theEncryptedString, "%c", &encryptedString[n]);
@@ -1651,19 +1690,14 @@ char * subAnalysis2()
 	{
 		str[n] = encryptedString[n];
 	}
-	
-	for (n = 0; feof(theKey) == 0; n++)
-	{
-		fscanf(theKey, "%c", &key[n]);
-		if (key[n] == EOF)
-			break;
-	}
+
 	//printf("String in subanalysis2 is %s\n", encryptedString);
+	
 	for (n=0; str[n] != 0; n++)
 	{
 		//printf("%c", encryptedString[n]);
 		//printf("%d\n", (int)str[n]);
-		if ((int)str[n] > 65 && str[n+1] > 65 && str[n+2] == str[n])// && (int)str[n+1] > 65 && str[n+2]== str[n])
+		if ((int)str[n] > 65 && str[n+1] > 65 && str[n+2] == str[n] && str[n+3] == ' ')// && (int)str[n+1] > 65 && str[n+2]== str[n])
 		{
 			char three = key[3];
 			char eight = key[8];
@@ -1676,9 +1710,197 @@ char * subAnalysis2()
 			}
 			key[3] = str[n];
 			key[8] = str[n+1];
+			printf("%c%c%c\n", str[n], str[n+1], str[n+2]);
+			found[3] = 1;
+			found[8] = 1;
 			break;
 		}
 	}
+	printf("This is key 7 - %c\n", key[7]);
+	printf("The key is %s\n", key);
+	for (n=0; str[n] != 0; n++)
+	{
+		if (str[n] == ' ' && str[n+1] > 64 && str[n+2] > 64 && str[n+3] > 64 && str[n+4] == str[n+1] && str[n+5] == ' ')
+		{
+			char nineteen = key[19];
+			char seven = key[7];
+			printf("This is seven%c\n", seven);
+			char zero = key[0];
+			int option = 1;
+			for (k = 0; key[k] != 0; k++)
+			{
+				switch(option)
+				{
+					case 1:
+						if (key[k] == str[n+3])
+						{
+							printf("K for a is %d\n", k);
+							key[0] = str[n+3];
+							key[k] = zero;
+							k = 0;
+							option = 2;
+						}
+						break;						
+					case 2:
+						if (key[k] == str[n+2])
+						{
+							printf("K for h is %d\n", k);
+							key[7] = str[n+2];
+							key[k] = seven;
+							k = 0;
+							option = 3;
+						}
+						break;
+					case 3:
+						if (key[k] == str[n+1])
+						{
+							printf("K for t is %d\n", k);
+							key[19] = str[n+1];
+							key[k] = nineteen;
+						}
+						break;
+				}
+			}
+				
+
+
+				printf("%d", k);
+			
+			printf("here is %c%c%c%c\n", str[n+1], str[n+2], str[n+3], seven);
+			
+			
+			
+			found[19] = 1;
+			found[7] = 1;
+			found [0] = 1;
+			break;
+		}
+	}/*
+	if (found[3] == 1)
+	{
+		for (n=0; str[n] !=0; n++)
+		{
+			if (str[n] == ' ' && str[n+1] == key[3] && str[n+2] > 64 && str[n+3] < 64)
+			{
+				char fourteen = key[14];
+				for (k = 0; key[k] != 0; k++)
+				{
+					if (key[k] == str[n+2])
+					{
+						key[k] == fourteen;
+					}
+				}
+				key[14] = str[n+2];
+				found[14] = 1;
+				break;
+			}
+		}
+	}/*
+	if (found[19] == 1 && found [7] == 1 && found [0] == 1)
+	{
+		for (n=0; str[n] !=0; n++)
+		{
+			if (str[n] == ' ' && str[n+1] == key[19] && str[n+2] == key[7] && str[n+3] == key[0] && (str[n+4] > 64 &&str[n+4] != key[19]) && str[n+5] < 64)
+			{
+				char thirteen = key[13];
+				for (k = 0; key[k] != 0; k++)
+				{
+					if (key[k] == str[n+4])
+					{
+						key[k] == thirteen;
+					}
+				}
+				key[13] = str[n+4];
+				break;
+			}
+		}
+	}
+	/*
+	
+	for (n=0; str[n] != 0; n++)
+	{
+		if (str[n] == key[19] && str[n+1] == key[7] && str[n+2] > 64 && str[n+3] == ' ')
+		{
+			char four = key[4];
+			for (k = 0; key[k] !=0; k++)
+			{
+				if (key[k] == str[n+2])
+					key[k] = four;
+			}
+			key[4] = str[n+2];
+		break;
+		}
+	}
+	for (n = 0; str[n] != 0; n++)
+	{
+		if (str[n] == key[19] && str[n+1] ==key[7] && str[n+2] == key[4] && str[n+3] > 64 && str[n+4] == ' ')
+		{
+			char thirteen = key[13];
+			for (k = 0; key[k] != 0; k++)
+			{
+				if (key[k] == str[n+3])
+					key[k] = thirteen;
+			}
+			key[13] = str[n+3];
+		}
+		if (str[n] == key[8] && str[n+1] == key[19] && str[n+2] == '\'' && str[n+3] > 64)
+		{
+			char eighteen = key[18];
+			for (k = 0; key[k] != 0; k++)
+			{
+				if (key[k] == str[n+3])
+					key[k] = eighteen;
+			}
+			key[18] = str[n+3];
+		}
+		if (str[n] == ' ' && str[n+1] == key[4] && str[n+2] > 64 && str[n+3] == key[4] && str[n+4] > 64 && str[n+5]  == ' ')
+		{
+			char twentyOne = key[21];
+			char seventeen = key[17];
+			for (k=0;key[k] != 0; k++)
+			{
+				if (key[k] == str[n+2])
+					key[k] = twentyOne;
+				else if (key[k] == str[n+4])
+					key[k] = seventeen;
+			}
+			key[21] = str[n+2];
+			key[17] = str[n+4];
+		}
+		if(str[n] == ' ' && str[n+1] == key[13] && str[n+2] > 64 && str[n+3] == key[19] && str[n+4] == ' ')
+		{
+			char fourteen = key[14];
+			for (k = 0; key[k] !=0; k++)
+			{
+				if (key[k] == str[n+2])
+					key[k] = fourteen;
+			}
+			key[14] = str[n+2];
+		}
+		int end = 1;
+		if (end == 1 && str[n] == ' ' && str[n+1] == key[14] && str[n+2] > 64 && str[n+2] != key[17] &&  str[n+3] ==' ')
+		{
+			char five = key[5];
+			for (k = 0; key[k] != 0; k++)
+			{
+				if (key[k] == str[n+2])
+					key[k] = five;
+			}
+			key[14] = str[n+1];
+			key[5] = str[n+2];
+			end = 0;			
+			break;
+		}
+	}
+	for (n = 0; str[n] != 0; n++)
+	{
+
+	}
+	for (n=0; str[n] != 0; n ++)
+	{
+		
+	}
+		
 	for (n=0; str[n] != 0; n++)
 	{
 		if(str[n] == 32 && str[n+1] >65 && str[n+2] > 65 && str[n+3] == 44 && str[n+4] > 65)
@@ -1700,10 +1922,10 @@ char * subAnalysis2()
 			key[18] = str[n+4];
 			break;
 		}
-	}
+	}*/
 	
 	fclose(theEncryptedString);
-	fclose(theKey);
+	//fclose(theKey);
 	return key;
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
@@ -2011,12 +2233,14 @@ int randomNumber(int min, int max)
 	/*declaration of integers used in function - d will store the range between the maximum and the minimum values that are to be 
 	produced, x stores the result of rand()%d which is then used to calculate the 
 	final value that is returned (x + min)*/
-	int d, x;
+	//srand(time(NULL));
+	int d, x , r = rand();
+	
 	
 	//calculates range between arguments passed to function and stores them in d
 	d = max - min;
 	//calculates a 'psuedo random' number with a maximum value equivalent to the range calculated above and stores it in x
-	x = rand() % d;
+	x = r % d;
 	/*returns the result of adding x and the minimum value passed to the function, thus producing a random number that will always 
 	between the max and min arguments passed to the function*/
 	return (x + min);
@@ -2031,7 +2255,7 @@ char * keyModifier(int option, char str[])
 {
 	/*declaration of integer varialbe used in function - b and c store random numbers between 0 and 25 which reference the two 
 	positions in keyHolder[] that will be swapped. n is used as a counter to help control for loop*/
-	int b = randomNumber(0, 25), c = randomNumber(0, 25), n;
+	int b = randomNumber(0, 26), c = randomNumber(0, 26), n;
 	//printf("%d\n", b); // used for testing
 	//printf("%d\n", c); //used for testing 
 	/*declaration of static char array that will hold the key to be modified - declared static so that it can be returned at end of
