@@ -1,14 +1,27 @@
 #include <stdio.h>
+//required in order for random number generator function
 #include <stdlib.h>
+/*text to be encrypted can be entered into input.txt prior to selecting an option, or through the console as an option itself
+The same goes for cipher in cipher.txt and key in key.txt. The options are explained in a menu that is displayed when the code
+is run. The output will be written to output.txt, as well as displayed via console at the completion of task.
+Limitations
+ - any functions intended to use text from input.txt and output.txt will be able to handle a maximum of 100000
+characers. Any more than this and it will die a horrible death.
+ - any functions intended to use text from key.txt may behave in an unknown manner if a number of characters that is not 26 is
+ passed to them
+  - any functions intended to utilise the contents of cipher.txt may have unwanted behavious if the value held in cipher.text
+	falls outside the range of -26 to 26
+
+	Please be patient with unknown substitution decryption, as the method used can take quite a long time z*/
 
 /*Function Headers*/
-/*Encrypts text, writes result to output.txt, takes an integer for cipher as argument, no return value as work done 
+/*Encrypts text, writes result to output.txt, takes an integer for cipher as argument, no return value as work done
 is written to output*/
 void rotationEncryption(int cipher);
-/*Decrypts text based on original key that was used for encryption, writes result to output.txt, takes an integer 
+/*Decrypts text based on original key that was used for encryption, writes result to output.txt, takes an integer
 for cipher as argument, no return value as work done is written to output*/
 void rotationDecryption(int cipher);
-/*Encrypts text, takes an integer to determine where and key and text are read from, no return value, work done 
+/*Encrypts text, takes an integer to determine where and key and text are read from, no return value, work done
 written to output*/
 void substitutionEncryption(int option);
 /*Decrypts text, takes int argument to determine where key and text are read from, no return value, work done is
@@ -110,21 +123,28 @@ int run()
 {
   //end used to determine whether or not code will continue to run at end of loop
 	int end;
+
+	static int showMenu = 0;
 	// secChoice stores users secondary choice will be tested against char a,b,c or d
   //choice stores users first choice, and tested against char 0 - 7
 	char secChoice = 0, choice = 8;
-
-	//calls the function that displays the list of options available to the user
-	mainMenu();
+	if (showMenu == 0)
+	{
+		//calls the function that displays the list of options available to the user
+		mainMenu();
+		showMenu = 1;
+	}
 
 	//ensures that the while loop will initially execute, do while could also have been used
 	end = 1;
-	while (end != 0)
-	{
-		printf("\nPlease select the corresponding number for the function you wish to use: ");
-		//calls the function getNumber(), which will then store an int from stdin in choice. No strictly necessary as
+//	while (end != 0)
+	//{
+		printf("\nPlease select the corresponding number for the function you wish to use: \n");
+		//calls the function getChar(), which will then store a char stdin in choice. No strictly necessary as
 		//scanf("%d", &choice could also have been used, but I thought it was a good opportunity to play around with various functions
 		//that serve a relatively simple purpose
+		//mitigates issues that was causing execution to jump past choice = straight to while loop
+		scanf("\n");
 		choice = getChar();
 		//If the number entered by the user doesn't correspond to an option, the while loop will kick in and prompt the user to enter
 		//in their preference again. This will repeat until a valid option is selected.
@@ -140,6 +160,7 @@ int run()
 			case '0':
 				//sets end = to 0, redundant however as the return 0 should cause execution to break out of function and return to main
 				end = 0;
+				//returning zero will break out of while loop in main, finishing execution
 				return 0;
 			case '1':
 				//This should call the function that will be used to encrypt rotation cipher
@@ -160,8 +181,8 @@ int run()
 				//stringMakerOutput() reads the contents of the encrypted file and stores it in char array, which is then returned at
 				//the end of the function and can then be printed using statement below
 				printf("\nThe resulting string is: '%s'", stringMakerOutput());
-				//end is set to 1 to ensure that the program continues in the while loop after exiting th switch statement
-				end = 1;
+				//causes run() to exit and re-enter due to while loop in main
+				return 1;
 				break;
 			case '2':
 				//This should call the function that will be used to decrypt rotation cipher
@@ -182,7 +203,8 @@ int run()
 				//stringMakerOutput() reads the contents of the encrypted file and stores it in char array, which is then returned at
 				//the end of the function and can then be printed using statement below
 				printf("\nThe resulting string is: '%s'", stringMakerOutput());
-				end = 1;
+				//causes run() to exit and re-enter due to while loop in main
+				return 1;
 				break;
 			case '3':
 				//This case will result in function relating to substitution encryption being called
@@ -190,51 +212,49 @@ int run()
 				secChoice = getChar();
 				while (secChoice < 97 || secChoice > 100)
 				{
-					if (secChoice < 97 || secChoice > 100)
-					{
-						printf("\nPlease enter a valid option:");
-						scanf("\n%c", &secChoice);
-					}
-					else
-						break;
+					printf("\nPlease enter a valid option:");
+					scanf("\n%c", &secChoice);
 				}
+				//calls function subEncChoice, which will then call a variation of substitution encryption based on user input
 				subEncChoice(secChoice);
 
 				printf("\nThe resulting string is: '%s'", stringMakerOutput());
-				end = 1;
+				//causes run() to exit and re-enter due to while loop in main
+				return 1;
 				break;
 			case '4':
 				//This should call the function that will be used to decrypt substitution cipher
 				menu4();
 				secChoice = getChar();
-				while (secChoice < 97 || secChoice> 100)
+				while (secChoice < 97 || secChoice > 100)
 				{
-					if (secChoice < 97 || secChoice > 100)
-					{
-						printf("\nPlease enter a valid option:");
-						scanf("\n%c", &secChoice);
-					}
-					else
-						break;
+					printf("\nPlease enter a valid option:");
+					scanf("\n%c", &secChoice);
 				}
+				//calls function subDecCho will then call a variation of substitution based on user input
 				subDecChoice(secChoice);
 				printf("\nThe resulting string is: '%s'", stringMakerOutput());
-				end = 1;
+				//causes run() to exit and re-enter due to while loop in main
+				return 1;
 				break;
 			case '5':
+				//calls unRotDecrypt(), which in turn calls a number of other functions which work together to decrypted unknown rotation cipher
 				unRotDecrypt();
 				printf("\nThe resulting string is: '%s'\n", stringMakerOutput());
-				end = 1;
+				//causes run() to exit and re-enter due to while loop in main
+				return 1;
 				break;
 			case '6':
 				//This should call the functions required to decrypt an unknown substitution cipher
 				unSubDecrypt();
 				printf("\nThe resulting string isL '%s'\n", stringMakerOutput());
-				end = 1;
+				//causes run() to exit and re-enter due to while loop in main
+				return 1;
 				break;
 			case '7':
 				mainMenu();
-				end = 1;
+				//causes run() to exit and re-enter due to while loop in main
+				return 1;
 				break;
 			default:
 				//This will happen if user doesn't select an option from 1 to 4 or something else goes wrong
@@ -243,8 +263,8 @@ int run()
 				break;
 				return 0;
 		}
-	}
-	return 0;
+	//}
+	return 1;
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 
@@ -348,7 +368,7 @@ char getChar()
 }
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 
-/*returns 1 if there has been an issue with the file input,txt. For example the file doesn't exist, or doesn't contain any letters 
+/*returns 1 if there has been an issue with the file input,txt. For example the file doesn't exist, or doesn't contain any letters
 that can be encrypted, such as '5' or '^', else returns 0. If an issue with the file is identified, users are given the
 opportunity to rectify the issue*/
 /*----------------------------------------------------------------------------------------------------------------------------------*/
@@ -658,7 +678,7 @@ void unSubDecrypt()
 		fclose(key);
 	}
 	//printf("str1 = %s\n", str1); //used for testing
-	for (int n = 0; n < 700; n++)
+	for (int n = 0; n < 1500; n++)
 	{
 		//two random values within key are swapped, with str used as a pointer to the result
 		char * str = keyModifier(0, str1);
@@ -1070,7 +1090,7 @@ only passed to the function during the proces of decrypting an unknown piece of 
 void substitutionDecryption(int option, char str1[])
 {
 	//char arrays key and atr are used to store the key used to decrypt the text and the string being decrypted respectively
-	char key[27], str[10000]; //= {'q','w','e','r','t','y','u','i','o','p','a','s','d','f','g','h','j','k','l','z','x','c','v','b','n','m','\0'};
+	char key[27], str[100000]; //= {'q','w','e','r','t','y','u','i','o','p','a','s','d','f','g','h','j','k','l','z','x','c','v','b','n','m','\0'};
 	//declaration of file pointers used, input will point to input.txt, output to output.txt and keyText to keyText.txt
 	FILE *input;
 	FILE *output;
@@ -1157,6 +1177,10 @@ void substitutionDecryption(int option, char str1[])
 			inputTest = inputCheck();
 		}
 	}
+	for (n = 0; n < 99999; n++)
+	{
+		str[n] = 0;
+	}
 	/*Opens appropriate files with write, read and read privileges as required*/
 	output = fopen("output.txt", "w");
 	input = fopen("input.txt", "r");
@@ -1172,17 +1196,31 @@ void substitutionDecryption(int option, char str1[])
 	so it was just left as is and n++ was added at the bottom to ensure values were stored in str correctly*/
 	//will continue loop until the end of input is reached, end = 0 and break; ensure that one way or another the loop stops
 	end = 1;
-	while(end != 0)
-	{
-		//reads a character from input and stores it in str, each iteration of loop moves on to the next character input
-		str[n] = fgetc(input);
-		//once fgetc reaches end of file, if statement will trigger and will break out of loop
-		if (str[n] == EOF)
+	//while(end != 0)
+	//{
+		//for loop intended to scan a character at a time from input and store it in str[n].
+		for (n = 0; feof(input) == 0; n++)
 		{
-			end = 0;
-			break;
+			//fscanf was used instead of fgetc to experiment and see whether there are any functional differences. fgetc could also be used
+			fscanf(input, "%c", &str[n]);
+			//if fscanf reaches the end of input, then if statement will be triggered and will break out of for loop
+			if (str[n] == EOF)
+			{
+				str[n] = 0;
+				break;
+			}
+			//identifies if str is lower case, and subtracts 32 to set str to the same letter, but upper case as per assessment spec.
+			else if (str[n] > 96 && str[n] < 123)
+				str[n] = str[n] - 32;
+			//tyring to figure out how to work with ellipsis in the unknown key substitution string
+			else if (str[n] > 123)
+			{
+				printf("That character is %d\n", str[n]);
+			}
+			//printf("String Tested is %s\n", str);
 		}
-		//identifies if str is lower case, and subtracts 32 to set str to the same letter, but upper case as per assessment spec.
+
+		/*//identifies if str is lower case, and subtracts 32 to set str to the same letter, but upper case as per assessment spec.
 		else if (str[n] > 96 && str[n] < 123)
 			str[n] = str[n] - 32;
 		//tyring to figure out how to work with ellipsis in the unknown key substitution string
@@ -1191,8 +1229,8 @@ void substitutionDecryption(int option, char str1[])
 			printf("That character is %d\n", str[n]);
 		}
 		//n is incremented so that the next character read from input will be stored in the next location in str
-		n++;
-	}
+		n++;*/
+	//}
 	//printf("%s\n", str);
 	/* for loop controls the implementation of decryption one character at a time. Once one character is decrypted as outlined below,
 	n is incremented and the next value stored in str is decrypted until the end of str is reached*/
@@ -1212,6 +1250,9 @@ void substitutionDecryption(int option, char str1[])
 		/*once str[n] has been assigned it's decrypted value, it is written to output*/
 		fputc(str[n], output);
 	}
+	n++;
+	str[n] = 0;
+	fprintf(output,"%c", str[n]);
 	printf("String is %s\n", str);
 	//close the files used to prevent any conflict if other functions need to manipulate them in any way
 	fclose(input);
@@ -1536,13 +1577,13 @@ char *stringMakerOutput()
 	//decaration of pointer to file that will be used as input, in this instance output.txt will be used
 	FILE *input;
 	//static char stores the string that is being read to the file
-	static char str[10000];
+	static char str[100000];
 	//n is used as a counter for control of for loops and assisting in ensuring that str is written to properly
 	int n;
 	//opens the file being used for input with read only permissions
 	input = fopen("output.txt", "r");
 	//for loop that zeros every value in str, as it is static and would retain values from the previous time it was recalled otherwise
-	for (n = 0; n < 999; n++)
+	for (n = 0; n < 99999; n++)
 	{
 		str[n] = 0;
 	}
@@ -1708,6 +1749,9 @@ int writeCipher(int option)
 	{
 		cipher = cipher * -1;
 	}
+	FILE * ciphertxt = fopen("cipher.txt", "w");
+	fprintf(ciphertxt, "%d", cipher);
+	fclose(ciphertxt);
 	//returns the final value stored in cipher as an integer
 	return cipher;
 }
@@ -1829,7 +1873,7 @@ int wordChecker()
 	{
 		//compares characters of stringToBeChecked with characters making up common words. If they are found to match then complete
 		//is set to equal 1
-		if ((stringToBeChecked[n] == 'A' && stringToBeChecked[n+1] == 'N' && stringToBeChecked[n+2] == 'D') ||(stringToBeChecked[n] == 'T' && stringToBeChecked [n+1] == 'H' && stringToBeChecked[n+2] == 'E') || (stringToBeChecked[n] == ' ' && stringToBeChecked[n+1] == 'I' && stringToBeChecked[n+2] == 'T' && stringToBeChecked[n+3] == ' '))// && stringToBeChecked[n+1] == 'n' && stringToBeChecked[n+2] == 'd')
+		if ((stringToBeChecked[n] == 'A' && stringToBeChecked[n+1] == 'N' && stringToBeChecked[n+2] == 'D') || (stringToBeChecked[n] == 'T' && stringToBeChecked [n+1] == 'H' && stringToBeChecked[n+2] == 'E') || (stringToBeChecked[n] == 32 && stringToBeChecked[n+1] == 'I' && stringToBeChecked[n+2] == 'T' && stringToBeChecked[n+3] == ' '))// && stringToBeChecked[n+1] == 'n' && stringToBeChecked[n+2] == 'd')
 		{
 			complete = 1;
 			break;
@@ -1839,22 +1883,46 @@ int wordChecker()
 			complete = 1;
 			break;
 		}
-		else if (stringToBeChecked[n] == ' ' && stringToBeChecked[n+1] == 'T' && stringToBeChecked[n+2] == 'O' && stringToBeChecked[n+3] == ' ')
+		else if (stringToBeChecked[n] == ' ' && stringToBeChecked[n+1] == 'T' && stringToBeChecked[n+2] == 'O' && stringToBeChecked[n+3] < 'A')
 		{
 			complete = 1;
 			break;
 		}
-		else if (stringToBeChecked[n] == ' ' && stringToBeChecked[n+1] == 'O' && stringToBeChecked[n+2] == 'F' && stringToBeChecked[n+3] == ' ')
+		else if (stringToBeChecked[n] == ' ' && stringToBeChecked[n+1] == 'O' && stringToBeChecked[n+2] == 'F' && stringToBeChecked[n+3] < 'A')
 		{
 			complete = 1;
 			break;
 		}
-		else if (stringToBeChecked[n] == ' ' && (stringToBeChecked[n+1] == 'I' || stringToBeChecked[n+1] == 0) && stringToBeChecked[n+2] == 'N' && stringToBeChecked[n+3] == ' ')
+		else if (stringToBeChecked[n] == ' ' && stringToBeChecked[n+1] == 'I' && stringToBeChecked[n+2] == 'N' && stringToBeChecked[n+3] < 'A')
 		{
 			complete = 1;
 			break;
 		}
-
+		else if (stringToBeChecked[n] == ' ' && stringToBeChecked[n+1] == 'O' && stringToBeChecked[n+2] == 'N' && stringToBeChecked[n+3] < 'A')
+		{
+			complete = 1;
+			break;
+		}
+		else if (stringToBeChecked[n] == ' ' && stringToBeChecked[n+1] == 'A'  && stringToBeChecked[n+2] == 'N' && stringToBeChecked[n+3] < 'A')
+		{
+			complete = 1;
+			break;
+		}
+		else if (stringToBeChecked[n] == ' ' && stringToBeChecked[n+1] == 'D'  && stringToBeChecked[n+2] == 'O' && stringToBeChecked[n+3] < 'A')
+		{
+			complete = 1;
+			break;
+		}
+		else if (stringToBeChecked[n] == ' ' && stringToBeChecked[n+1] == 'A'  && stringToBeChecked[n+2] == 'T' && stringToBeChecked[n+3] < 'A')
+		{
+			complete = 1;
+			break;
+		}
+		else if (stringToBeChecked[n] == ' ' && stringToBeChecked[n+1] == 'T'  && stringToBeChecked[n+2] == 'N' && stringToBeChecked[n+3] < 'A')
+		{
+			complete = 1;
+			break;
+		}
 		//used during the early stages of testing code, had an issue where extra full stops were being appended to the end of strings*/
 		//possibly redundant now but left in just in case
 		else if ((stringToBeChecked[n] == '.' && stringToBeChecked[n+1] == '.'))
@@ -2113,6 +2181,8 @@ char * subAnalysis2()
 							//see case 1 for info
 							key[19] = str[n+1];
 							key[k] = nineteen;
+							option = 4;
+							break;
 							//k is not required to be reset or option changed, as all values have been set
 						}
 						break;
@@ -2127,7 +2197,7 @@ char * subAnalysis2()
 			break;
 		}
 	}
-	/*
+
 	if (found[3] == 1 && found[0] == 1)
 	{
 		for (n=0; str[n] != 0; n++)
@@ -2149,7 +2219,7 @@ char * subAnalysis2()
 			break;
 		}
 	}
-	/*
+
 	if (found[3] == 1)
 	{
 		for (n=0; str[n] !=0; n++)
@@ -2169,7 +2239,7 @@ char * subAnalysis2()
 				break;
 			}
 		}
-	}/*
+	}
 	if (found[19] == 1 && found [7] == 1 && found [0] == 1)
 	{
 		for (n=0; str[n] !=0; n++)
@@ -2189,7 +2259,7 @@ char * subAnalysis2()
 			}
 		}
 	}
-	/*
+
 
 	for (n=0; str[n] != 0; n++)
 	{
@@ -2295,7 +2365,8 @@ char * subAnalysis2()
 			key[18] = str[n+4];
 			break;
 		}
-	}*/
+	}
+	printf("%s\n", key);
 	//closes the file input.txt to reduce the risk of issues when other functions try to access it
 	fclose(theEncryptedString);
 	//fclose(theKey);
@@ -2357,6 +2428,7 @@ void subAnalysis()
 		//process then repeats itself until frequency of all 26 letters have been compared
 		for (n = 0; n<26; n++)
 		{
+			//printf("stringCounttext %d\n", strCount[n]); //used for testing
 			//static int count = 0;
 			if (strCount[n] >= count)
 			{
@@ -2364,10 +2436,11 @@ void subAnalysis()
 				a = n;
 				//holds the value in the string that corresponds to the letter in the alpahbet
 				//i.e. a=0, b=1,... z=26
-			}
+		 	}
+
 		}
 		//Most frequent value is set to -1 so that it is essentially ignored during following iterations
-		strCount[a] = -1;
+		strCount[a] = -5;
 		//switch based on counter allows key to be filled sequentially based on letter frequency outlined above
 		switch (counter)
 		{
@@ -2481,9 +2554,10 @@ int duplicateChecker(char * someString)
 	/*stringCount(someString) returns the frequency of letters in an char array passed to the function as an argument, in this instance
 	someString. The return takes the form of an array of integers. These individual values are accessed using strCount*/
 	strCount = stringCount(someString);
+
 	//for loop cycles through all of the values returned by stringCount(someString).
-	for (n = 0; n<=25; n++)
-	{
+	for (n = 0; n<=25; n++){
+		//printf("stringCount key%d\n", strCount[n]); used for testing
 		//If any value strCount[n] is greater than 1, it means that a character appeared more than once. This triggers
 		//the if statement causing the function to return a value of 1.
 		if (strCount[n] > 1)
