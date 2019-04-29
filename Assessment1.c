@@ -1,7 +1,36 @@
-#include <stdio.h>
-//required in order for random number generator function
-#include <stdlib.h>
-/*text to be encrypted can be entered into input.txt prior to selecting an option, or through the console as an option itself
+/*Written by Daniel Glasson
+  Student number 3301428
+
+  Appologies in advanced, this is a bit of a mess
+*/
+
+/*Basic Outline of how the code operates
+User input is taken to determine which task is to be attempted. If user input is invalid they are asked for it again until
+a valid input is entered. When rotation encryption/decryption and substitution decryption are selected, the contents of
+input.txt is read one character at a time, this character is then manipulated based on a key or cipher value and written
+to output.txt. Substitution decryption is slightly different in that it takes all of the test from input.txt and stores it
+in a string, then the string is manipulated one character at a time with the result written to output.txt.
+Unknown rotation decryption analyses the contents of input.txt and generates a cipher value based on the most common letter,
+assuming that when decrypted that letter will be 'E'. Decryption is then performed and the result is tested against a small
+number of common words. If any of the words match decryption is assumed to be complete. If not, a new cipher value is generated
+assuming that the most common letter in the encrypted text pertains to the next most common letter in english. Decryption is
+completed, result checked and the process repeats itself until a match is found.
+Unknown substiution analyses the text in input.txt creates a preliminary key based on the frequency of each letter in input
+when compared with english. Decryption is completed and the result is compared against a string containing 10000 common words
+in english, with a score generated based on the number of similarities. Secondary analysis is then performed, looking for
+relatively unique but common words that can be identified without a key, with values in the prelim key modified to suit any
+matches found. Decryption is then performed again and another score is generated, if the newest score is higher than the prelim
+score than the new key will be saved to key.txt, otherwise rest of funtion will use prelim key. After this, the key has two
+random characters switched, decryption is completed and another score is generated. Score is compared with last key
+and the one resulting in a lower score is discarded. This process repeats itself until about 1500 iterations ocurr without
+an increase in score, after which it is assumed that the key is as good as it is going to get. A final decryption is then
+completed with the result stored in output.txt */
+
+/*User input
+User input is handled by a series of menu style functions that take a char from the console and perform an action based on
+that char. Menu system for first four tasks is broken up into two sections, choosing the function to be completed and where
+the input is taken from.
+text to be encrypted can be entered into input.txt prior to selecting an option, or through the console as an option itself
 The same goes for cipher in cipher.txt and key in key.txt. The options are explained in a menu that is displayed when the code
 is run. The output will be written to output.txt, as well as displayed via console at the completion of task.
 Limitations
@@ -12,9 +41,23 @@ characers. Any more than this and it will die a horrible death.
   - any functions intended to utilise the contents of cipher.txt may have unwanted behavious if the value held in cipher.text
 	falls outside the range of -26 to 26
 
-	Please be patient with unknown substitution decryption, as the method used can take quite a long time z*/
+Please be patient with unknown substitution decryption, as the method used can take quite a long time z*/
+
+/*------------------------IMPORTANT-IMPORTANT-IMPORTANT-----------------------------*/
+/*When completing rotation decryption, the cipher key that was used to encrypt the text is what should be supplied either via
+console or directly to cipher.txt. For example, if the text 'PROPER DECRYPTION' is encrypted to produce 'SURSHU GHFUBSWLRQ' using
+a key of 7, then you should save the cipher as 7 to return it back to 'PROPER DECRYPTION', rather than -7, which would result in
+'DFCDSF RSQFMDHWCB'*/
+/*This code will not execute unknown substitution decryption on Brentons che server, as the scripts he's running kill it,
+I'm assuming because of the large number of time it is designed to loop*/
+
+//required in order to use functions such as scanf and printf
+#include <stdio.h>
+//required in order for random number generator function
+#include <stdlib.h>
 
 /*Function Headers*/
+//Please note that more information about each function can be found above each function definition
 /*Encrypts text, writes result to output.txt, takes an integer for cipher as argument, no return value as work done
 is written to output*/
 void rotationEncryption(int cipher);
@@ -97,11 +140,13 @@ int getNumber();
 /*checks input.txt for existence, contents etc, returns 1 if issue with file was found*/
 int inputCheck();
 
+/*main only serves as a means to repeatedly call the run() function until a user opts to leave the program,
+after which run will return 0 and main will exit. Control is handled by run() and various sub functions, such as subEncChoice()
+or unSubDecrypt(). The code is broken up in this manner with the intention of making it somewhat easier to read.*/
 /*----------------------------------------------------------------------------------------------------------------------------------*/
 int main()
 {
 	//variable used to control the loop, as the run function returns 0 when the user opts to finish
-
 	int end = 1;
 	//while(run()) could also work
 	/*run function is called repeatedly until user selects an option in the run() function that shows they wish to exit, in which
