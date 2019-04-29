@@ -1963,7 +1963,32 @@ int wordChecker()
 			complete = 1;
 			break;
 		}
-		else if (stringToBeChecked[n] == ' ' && stringToBeChecked[n+1] == 'T'  && stringToBeChecked[n+2] == 'N' && stringToBeChecked[n+3] < 'A')
+		else if (stringToBeChecked[n] == ' ' && stringToBeChecked[n+1] == 'T'  && stringToBeChecked[n+2] == 'O' && stringToBeChecked[n+3] < 'A')
+		{
+			complete = 1;
+			break;
+		}
+		else if (stringToBeChecked[n]) == ' ' && stringToBeChecked[n+1] == 'T' && stringToBeChecked[n+2] == 'H' && stringToBeChecked[n+3] == 'A' && stringToBeChecked[n+4] == 'T' && stringToBeChecked[n+5] < 'A'
+		{
+			complete = 1;
+			break;
+		}
+		else if (stringToBeChecked[n]) == ' ' && stringToBeChecked[n+1] == 'T' && stringToBeChecked[n+2] == 'H' && stringToBeChecked[n+3] == 'E' && stringToBeChecked[n+4] == 'N' && stringToBeChecked[n+5] < 'A'
+		{
+			complete = 1;
+			break;
+		}
+		else if (stringToBeChecked[n]) == ' ' && stringToBeChecked[n+1] == 'A' && stringToBeChecked[n+2] == 'R' && stringToBeChecked[n+3] == 'E' && stringToBeChecked[n+4]  < 'A'
+		{
+			complete = 1;
+			break;
+		}
+		else if (stringToBeChecked[n]) == ' ' && stringToBeChecked[n+1] == 'W' && stringToBeChecked[n+2] == 'A' && stringToBeChecked[n+3] == 'S' && stringToBeChecked[n+4]  < 'A'
+		{
+			complete = 1;
+			break;
+		}
+		else if (stringToBeChecked[n]) == ' ' && stringToBeChecked[n+1] == 'Y' && stringToBeChecked[n+2] == 'O' && stringToBeChecked[n+3] == 'U' && stringToBeChecked[n+4]  < 'A'
 		{
 			complete = 1;
 			break;
